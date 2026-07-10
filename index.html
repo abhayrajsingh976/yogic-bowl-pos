@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Yogic Bowl — POS</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4f5a3b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Yogic Bowl POS">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --cream:#f6f1e4;
+    --olive:#6b7752;
+    --olive-dark:#4f5a3b;
+    --clay:#b5895a;
+    --ink:#2c2a20;
+    --line:#e2d9c2;
+    --card:#ffffff;
+    --good:#4d7c4d;
+    --bad:#b25454;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--cream);color:var(--ink);}
+  header{
+    background:var(--olive-dark);color:#fff;padding:14px 18px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:20;
+  }
+  header h1{font-size:18px;margin:0;letter-spacing:.5px;font-weight:600;}
+  header .status{font-size:11px;opacity:.85;display:flex;align-items:center;gap:6px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:#8fce8f;display:inline-block;}
+  .dot.off{background:#e0a1a1;}
+  nav{display:flex;background:var(--olive);position:sticky;top:52px;z-index:19;}
+  nav button{
+    flex:1;padding:12px 6px;background:none;border:none;color:#fff;font-size:14px;
+    opacity:.75;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;
+  }
+  nav button.active{opacity:1;border-bottom-color:var(--clay);}
+  main{padding:12px;padding-bottom:90px;max-width:1200px;margin:0 auto;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* Billing */
+  .cats{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;}
+  .cats button{
+    flex:0 0 auto;padding:8px 14px;border-radius:20px;border:1px solid var(--line);
+    background:#fff;font-size:13px;font-weight:600;color:var(--olive-dark);cursor:pointer;white-space:nowrap;
+  }
+  .cats button.active{background:var(--olive);color:#fff;border-color:var(--olive);}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;}
+  .item-card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;
+    cursor:pointer;user-select:none;transition:transform .08s;
+  }
+  .item-card:active{transform:scale(.96);background:#fbf7ea;}
+  .item-card .name{font-weight:600;font-size:14px;margin-bottom:6px;line-height:1.25;}
+  .item-card .price{color:var(--clay);font-weight:700;font-size:14px;}
+
+  .cart-bar{
+    position:fixed;bottom:0;left:0;right:0;background:var(--olive-dark);color:#fff;
+    padding:12px 16px;display:flex;align-items:center;justify-content:space-between;z-index:25;
+    box-shadow:0 -2px 10px rgba(0,0,0,.15);
+  }
+  .cart-bar .count{font-size:13px;opacity:.85;}
+  .cart-bar .total{font-size:18px;font-weight:700;}
+  .cart-bar button{
+    background:var(--clay);color:#fff;border:none;padding:10px 20px;border-radius:8px;
+    font-weight:700;font-size:14px;cursor:pointer;
+  }
+  .cart-bar button:disabled{opacity:.4;}
+
+  /* Cart modal */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:40;display:none;align-items:flex-end;justify-content:center;}
+  .overlay.show{display:flex;}
+  .sheet{
+    background:#fff;width:100%;max-width:520px;border-radius:16px 16px 0 0;
+    max-height:85vh;display:flex;flex-direction:column;
+  }
+  .sheet-head{padding:16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .sheet-head h2{margin:0;font-size:17px;}
+  .sheet-head .close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink);}
+  .sheet-body{padding:12px 16px;overflow-y:auto;flex:1;}
+  .cart-row{display:flex;align-items:flex-start;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0ebda;}
+  .cart-row .info{flex:1;}
+  .cart-row .info .n{font-weight:600;font-size:14px;}
+  .cart-row .info .p{font-size:12px;color:#888;}
+  .addon-list{margin-top:6px;}
+  .addon-chip{
+    display:inline-flex;align-items:center;gap:4px;background:var(--cream);border:1px solid var(--line);
+    border-radius:12px;padding:3px 8px;font-size:11px;margin:2px 4px 2px 0;
+  }
+  .addon-chip button{background:none;border:none;color:var(--bad);cursor:pointer;font-size:12px;padding:0;line-height:1;}
+  .add-addon-btn{
+    background:none;border:1px dashed var(--olive);color:var(--olive-dark);font-size:11px;
+    padding:3px 9px;border-radius:12px;cursor:pointer;margin-top:4px;
+  }
+  .qty{display:flex;align-items:center;gap:8px;}
+  .qty button{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:16px;cursor:pointer;}
+  .qty span{min-width:18px;text-align:center;font-weight:600;}
+  .sheet-foot{padding:14px 16px;border-top:1px solid var(--line);}
+  .row-between{display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px;}
+  .row-between.total{font-size:18px;font-weight:700;margin-top:8px;}
+  .pay-methods{display:flex;gap:8px;margin:10px 0;}
+  .pay-methods button{
+    flex:1;padding:10px;border-radius:8px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer;
+  }
+  .pay-methods button.sel{background:var(--olive);color:#fff;border-color:var(--olive);}
+  .checkout-btn{
+    width:100%;padding:14px;background:var(--good);color:#fff;border:none;border-radius:10px;
+    font-size:16px;font-weight:700;cursor:pointer;
+  }
+  .checkout-btn:disabled{background:#aaa;}
+
+  /* Menu management */
+  .mgmt-add{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px;}
+  .mgmt-add h3{margin:0 0 10px;font-size:15px;}
+  .form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .form-row input,.form-row select{
+    flex:1;min-width:110px;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;
+  }
+  .form-row button{
+    padding:10px 18px;background:var(--olive);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;
+  }
+  .mgmt-list .cat-group{margin-bottom:14px;}
+  .mgmt-list .cat-title{font-weight:700;color:var(--olive-dark);margin:10px 0 6px;font-size:14px;}
+  .mgmt-row{
+    display:flex;align-items:center;justify-content:space-between;background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:6px;
+  }
+  .mgmt-row .n{font-weight:600;font-size:14px;}
+  .mgmt-row .p{font-size:13px;color:var(--clay);font-weight:700;margin-left:8px;}
+  .mgmt-row .del{background:none;border:none;color:var(--bad);font-size:18px;cursor:pointer;padding:4px 8px;}
+
+  /* History */
+  .stat-cards{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+  .stat-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px;flex:1;min-width:120px;}
+  .stat-card .label{font-size:12px;color:#888;}
+  .stat-card .val{font-size:20px;font-weight:700;color:var(--olive-dark);}
+  .order-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+  .order-card .top{display:flex;justify-content:space-between;font-size:13px;color:#666;margin-bottom:6px;}
+  .order-card .items{font-size:13px;color:#444;margin-bottom:6px;}
+  .order-card .bottom{display:flex;justify-content:space-between;align-items:center;}
+  .order-card .total{font-weight:700;color:var(--olive-dark);}
+  .tag{font-size:11px;background:var(--cream);border:1px solid var(--line);padding:2px 8px;border-radius:10px;}
+
+  .empty{text-align:center;padding:40px 20px;color:#999;font-size:14px;}
+
+  /* Search bar */
+  .search-wrap{margin-bottom:10px;}
+  .search-wrap input{
+    width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:#fff;
+  }
+
+  /* Staff login screen */
+  #loginScreen{
+    position:fixed;inset:0;background:var(--olive-dark);z-index:100;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px;
+  }
+  #loginScreen.hide{display:none;}
+  #loginScreen h2{color:#fff;font-size:20px;margin-bottom:4px;}
+  #loginScreen p{color:#d8dfc8;font-size:13px;margin-bottom:20px;}
+  .login-box{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:320px;}
+  .login-box select, .login-box input{
+    width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;font-size:15px;margin-bottom:10px;
+  }
+  .login-box button{
+    width:100%;padding:13px;background:var(--clay);color:#fff;border:none;border-radius:8px;
+    font-weight:700;font-size:15px;cursor:pointer;
+  }
+  .login-err{color:var(--bad);font-size:12px;margin-top:6px;display:none;}
+  #currentStaffTag{
+    font-size:11px;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:10px;cursor:pointer;
+  }
+
+  /* Staff management */
+  .staff-row{
+    display:flex;align-items:center;justify-content:space-between;background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:6px;
+  }
+  .staff-row .n{font-weight:600;font-size:14px;}
+  .staff-row .del{background:none;border:none;color:var(--bad);font-size:18px;cursor:pointer;padding:4px 8px;}
+
+  /* Best sellers */
+  .bestseller-row{
+    display:flex;justify-content:space-between;align-items:center;background:#fff;
+    border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:6px;
+  }
+  .bestseller-row .rank{color:var(--clay);font-weight:700;margin-right:8px;}
+
+  .toast{
+    position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--olive-dark);color:#fff;
+    padding:10px 20px;border-radius:20px;font-size:13px;z-index:60;opacity:0;transition:opacity .3s;pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+
+  /* Receipt modal */
+  .receipt-sheet{max-width:380px;}
+  #receiptPreview{
+    background:#fff;border:1px dashed var(--line);border-radius:10px;padding:14px;
+    font-family:'Courier New',monospace;font-size:13px;line-height:1.5;margin-bottom:14px;
+  }
+  #receiptPreview .rline{display:flex;justify-content:space-between;}
+  #receiptPreview hr{border:none;border-top:1px dashed #ccc;margin:8px 0;}
+  #receiptPreview .biz{text-align:center;font-weight:700;font-size:14px;margin-bottom:4px;}
+  #receiptPreview .sub{text-align:center;font-size:11px;color:#888;margin-bottom:8px;}
+  .receipt-actions{display:flex;flex-direction:column;gap:8px;}
+  .receipt-actions button{
+    padding:12px;border-radius:8px;border:none;font-weight:700;font-size:14px;cursor:pointer;
+  }
+  .btn-whatsapp{background:#25D366;color:#fff;}
+  .btn-print{background:var(--olive);color:#fff;}
+  .btn-newsale{background:#f0ebda;color:var(--ink);}
+
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{
+      display:block;position:absolute;top:0;left:0;width:100%;
+      font-family:'Courier New',monospace;font-size:12px;padding:10px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- STAFF LOGIN -->
+<div id="loginScreen">
+  <h2>🌿 The Yogic Bowl</h2>
+  <p>Select your name to start billing</p>
+  <div class="login-box">
+    <select id="loginStaffSelect"><option value="">Loading staff…</option></select>
+    <input type="password" id="loginPin" placeholder="4-digit PIN" maxlength="4" inputmode="numeric">
+    <button onclick="attemptLogin()">Log In</button>
+    <div class="login-err" id="loginErr">Wrong PIN, try again.</div>
+  </div>
+</div>
+
+<header>
+  <h1>🌿 The Yogic Bowl — POS</h1>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span id="currentStaffTag" onclick="logoutStaff()">👤 —</span>
+    <div class="status"><span class="dot off" id="statusDot"></span><span id="statusText">Connecting…</span></div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" data-view="billing">Billing</button>
+  <button data-view="menu">Menu</button>
+  <button data-view="staff">Staff</button>
+  <button data-view="history">Sales</button>
+</nav>
+
+<main>
+  <!-- BILLING VIEW -->
+  <section class="view active" id="view-billing">
+    <div class="search-wrap">
+      <input type="text" id="searchBox" placeholder="🔍 Search menu items…" oninput="onSearch(this.value)">
+    </div>
+    <div class="cats" id="cats"></div>
+    <div class="grid" id="itemGrid"></div>
+    <div class="empty" id="gridEmpty" style="display:none;">No items in this category yet. Add some in the Menu tab.</div>
+  </section>
+
+
+  <!-- MENU MANAGEMENT VIEW -->
+  <section class="view" id="view-menu">
+    <div class="mgmt-add">
+      <h3>Add new item</h3>
+      <div class="form-row">
+        <input type="text" id="newName" placeholder="Item name">
+        <input type="text" id="newCat" placeholder="Category (e.g. Beverages)" list="catList">
+        <datalist id="catList"></datalist>
+        <input type="number" id="newPrice" placeholder="Price ₹" style="max-width:100px;">
+      </div>
+      <div class="form-row">
+        <button onclick="addItem()">+ Add Item</button>
+      </div>
+    </div>
+    <div class="mgmt-list" id="mgmtList"></div>
+  </section>
+
+  <!-- STAFF MANAGEMENT VIEW -->
+  <section class="view" id="view-staff">
+    <div class="mgmt-add">
+      <h3>Add staff member</h3>
+      <div class="form-row">
+        <input type="text" id="newStaffName" placeholder="Staff name">
+        <input type="password" id="newStaffPin" placeholder="4-digit PIN" maxlength="4" inputmode="numeric" style="max-width:120px;">
+      </div>
+      <div class="form-row">
+        <button onclick="addStaff()">+ Add Staff</button>
+      </div>
+    </div>
+    <div id="staffList"></div>
+  </section>
+
+  <!-- HISTORY VIEW -->
+  <section class="view" id="view-history">
+    <div class="stat-cards">
+      <div class="stat-card"><div class="label">Today's Sales</div><div class="val" id="todayTotal">₹0</div></div>
+      <div class="stat-card"><div class="label">Today's Orders</div><div class="val" id="todayCount">0</div></div>
+    </div>
+    <div class="cat-title" style="font-weight:700;color:var(--olive-dark);margin:14px 0 8px;">🔥 Best Sellers (last 7 days)</div>
+    <div id="bestSellers"></div>
+    <div class="cat-title" style="font-weight:700;color:var(--olive-dark);margin:16px 0 8px;">Recent Orders</div>
+    <div id="orderList"></div>
+    <div class="empty" id="historyEmpty" style="display:none;">No orders yet today.</div>
+  </section>
+</main>
+
+<!-- Cart bar -->
+<div class="cart-bar" id="cartBar" style="display:none;">
+  <div>
+    <div class="count" id="cartCount">0 items</div>
+    <div class="total" id="cartTotalBar">₹0</div>
+  </div>
+  <button onclick="openCart()">View Cart</button>
+</div>
+
+<!-- Cart sheet -->
+<div class="overlay" id="cartOverlay">
+  <div class="sheet">
+    <div class="sheet-head">
+      <h2>Current Bill</h2>
+      <button class="close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="sheet-body" id="cartBody"></div>
+    <div class="sheet-foot">
+      <div class="row-between" style="align-items:center;">
+        <span>No. of Guests</span>
+        <input type="number" id="guestCount" min="1" value="1" style="width:60px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;text-align:center;">
+      </div>
+      <div class="row-between" style="align-items:center;">
+        <span>Guest Phone (optional)</span>
+        <input type="tel" id="guestPhone" placeholder="10-digit number" style="width:130px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;text-align:right;">
+      </div>
+      <div class="row-between total"><span>Total</span><span id="cartTotalSheet">₹0</span></div>
+      <div class="pay-methods" id="payMethods">
+        <button class="sel" data-method="Cash" onclick="selectPay('Cash')">Cash</button>
+        <button data-method="UPI" onclick="selectPay('UPI')">UPI</button>
+        <button data-method="Card" onclick="selectPay('Card')">Card</button>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn" onclick="checkout()">Complete Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt modal -->
+<div class="overlay" id="receiptOverlay">
+  <div class="sheet receipt-sheet">
+    <div class="sheet-head">
+      <h2>Order Complete ✓</h2>
+      <button class="close" onclick="closeReceipt()">✕</button>
+    </div>
+    <div class="sheet-body">
+      <div id="receiptPreview"></div>
+      <div class="receipt-actions">
+        <button class="btn-whatsapp" onclick="sendWhatsApp()">📱 Send via WhatsApp</button>
+        <button class="btn-print" onclick="printReceipt()">🖨️ Print Receipt</button>
+        <button class="btn-newsale" onclick="closeReceipt()">Start New Order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden print-only area -->
+<div id="printArea"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- Firebase Setup ---------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyA-sVzDtzQZ5Jg0UzI_MK2PfPYgVYRFrUo",
+  authDomain: "yogic-bowl-pos.firebaseapp.com",
+  projectId: "yogic-bowl-pos",
+  storageBucket: "yogic-bowl-pos.firebasestorage.app",
+  messagingSenderId: "283622713694",
+  appId: "1:283622713694:web:549f633dd939bc33a507cf",
+  measurementId: "G-B9M09B0RVQ"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function setStatus(ok, text){
+  document.getElementById('statusDot').className = 'dot' + (ok ? '' : ' off');
+  document.getElementById('statusText').textContent = text;
+}
+
+/* ---------------- Seed Menu Data ---------------- */
+const SEED_MENU = [
+  // Smoothie Drinks
+  ["Pineapple Cucumber Spinach Smoothie","Smoothie Drinks",250],
+  ["Banana Papaya Strawberry Smoothie","Smoothie Drinks",280],
+  ["Banana Split Smoothie","Smoothie Drinks",250],
+  // Smoothie Bowls
+  ["Tropical Smoothie Bowl","Smoothie Bowls",300],
+  ["Chocolate Peanut Butter Banana Bowl","Smoothie Bowls",280],
+  ["Avocado and Spinach Smoothie Bowl","Smoothie Bowls",350],
+  ["Coconut Acai Smoothie Bowl","Smoothie Bowls",300],
+  ["Carrot Cake Smoothie Bowl","Smoothie Bowls",250],
+  ["Strawberries Cream Smoothie Bowl","Smoothie Bowls",300],
+  // Juices
+  ["Mausambi (Sweet Lime) Juice","Juices",120],
+  ["Pineapple Juice","Juices",150],
+  ["Watermelon Juice","Juices",120],
+  ["Apple Beetroot Carrot Juice","Juices",150],
+  ["Orange Juice","Juices",180],
+  // Shakes
+  ["Strawberry Milkshake","Shakes",220],
+  ["Peanut Butter Brownie Shake","Shakes",220],
+  ["Caramel Biscoff Shake","Shakes",220],
+  ["Boozy S'mores Milkshake","Shakes",200],
+  ["Oreo Cookies Shake","Shakes",200],
+  // Tea
+  ["Indian Masala Tea","Tea",40],
+  ["Honey Lemon Ginger Tea","Tea",80],
+  ["Ginger Mint Tea","Tea",80],
+  ["Yogic Tea","Tea",100],
+  ["Blue Butterfly Pea Tea","Tea",120],
+  // Hot Brews
+  ["Espresso Single Shot","Hot Brews",70],
+  ["Espresso Double Shot","Hot Brews",120],
+  ["Americano","Hot Brews",120],
+  ["Cortado","Hot Brews",130],
+  ["Cappuccino","Hot Brews",130],
+  ["Latte","Hot Brews",130],
+  ["Caramel Macchiato","Hot Brews",130],
+  ["Cafe Mocha","Hot Brews",200],
+  ["Hazelnut Latte","Hot Brews",200],
+  // Toast & Sandwiches
+  ["Toast w/ PB or Nutella & Banana","Toast & Sandwiches",180],
+  ["Avocado Toast with Veggies/Eggs","Toast & Sandwiches",220],
+  ["Tandoori Paneer Sandwich","Toast & Sandwiches",250],
+  ["Corn and Cheese Sandwich","Toast & Sandwiches",250],
+  ["Tahini Crunch","Toast & Sandwiches",280],
+  ["The Green Monk","Toast & Sandwiches",280],
+  // Eggs
+  ["Boiled Eggs (2)","Eggs",50],
+  ["Plain Omelette","Eggs",100],
+  ["Vegetable Omelette","Eggs",120],
+  ["Scrambled Eggs","Eggs",130],
+  ["Souffle Omelette","Eggs",150],
+  ["Shakshuka","Eggs",260],
+  // Salad Bowls
+  ["Greek Vegan Chickpea Millet","Salad Bowls",250],
+  ["Mexican Bean Pepper Salad","Salad Bowls",250],
+  ["Spring Pesto Pasta Salad","Salad Bowls",280],
+  ["Crunchy Broccoli Millet Salad","Salad Bowls",280],
+  ["Tahina Based Salad","Salad Bowls",300],
+  ["Quinoa Salad","Salad Bowls",300],
+  // Buddha Bowls
+  ["Vegan Tofu Himalayan Millet Bowl","Buddha Bowls",300],
+  ["Pad Thai Noodles Bowl","Buddha Bowls",280],
+  ["Middle Eastern Falafel Bowl","Buddha Bowls",260],
+  ["Mediterranean Bowl","Buddha Bowls",300],
+  ["Red Thai Bowl","Buddha Bowls",300],
+  // Chinese Bowls
+  ["Vegetable Chowmein","Chinese Bowls",150],
+  ["Chilli Garlic Noodles","Chinese Bowls",180],
+  ["Thukpa","Chinese Bowls",200],
+  ["Hakka Noodles","Chinese Bowls",200],
+  ["Thai Tofu Peanut Noodles","Chinese Bowls",250],
+  // Indian Bowls
+  ["Pahadi Rajma Bowl","Indian Bowls",300],
+  ["Mandi Bowl","Indian Bowls",300],
+  ["Egg Curry Bowl","Indian Bowls",320],
+  ["Dusk and Dawn Bowl","Indian Bowls",350],
+  ["Coconut Stew","Indian Bowls",380],
+  // Wraps
+  ["Kathi Roll / Egg Roll","Wraps",220],
+  ["Pesto Wrap","Wraps",280],
+  ["Pinwheel Wrap","Wraps",300],
+  ["Falafal Wrap","Wraps",300],
+  // Rice
+  ["Lemon Rice","Rice",130],
+  ["Dal Khichdi","Rice",200],
+  ["Curd Rice","Rice",200],
+  ["Egg Fried Rice","Rice",200],
+  ["Paneer Tikka Pulao","Rice",280],
+  // Desserts
+  ["Rabdi Kulfi","Desserts",250],
+  ["Fudge Sauce Sundae","Desserts",250],
+  ["Pistachio Coconut Kulfi","Desserts",300],
+  ["Date Almond Kulfi","Desserts",300],
+  // Waffles
+  ["Matcha Waffle","Waffles",280],
+  ["Blue Berries Waffle","Waffles",280],
+  ["Oreo Cookie Waffle","Waffles",280],
+  ["Indian Style Rabdi Waffle","Waffles",280],
+  ["Nutella and Banana Waffle","Waffles",250],
+  ["Double Chocolate Waffle","Waffles",280],
+  // Indian Breakfast - Paratha
+  ["Masala Paratha","Paratha",60],
+  ["Aloo-Pyaaz Stuffed Paratha","Paratha",100],
+  ["Paneer Paratha","Paratha",120],
+  ["Poha","Paratha",120],
+  // Dosa
+  ["Plain Ghee Dosa","Dosa",120],
+  ["Podi Dosa","Dosa",120],
+  ["Masala Dosa","Dosa",150],
+  ["Paneer / Tofu Dosa","Dosa",200],
+  ["Mysore Special Dosa","Dosa",220],
+  // Starters
+  ["Beetroot Kabab","Starters",200],
+  ["Makhana Bhel","Starters",220],
+  ["Honey Chilli Potato","Starters",220],
+  ["Crispy Fried American Corn","Starters",250],
+  ["Chilli Mushroom","Starters",250],
+  // Pancake & Crepes
+  ["Nutella Banana Pancake","Pancake & Crepes",200],
+  ["Oats & Nuts Pancakes","Pancake & Crepes",250],
+  ["Blueberry Pancake","Pancake & Crepes",250],
+  ["Fruit Island Crepe","Pancake & Crepes",350],
+  ["Green Velvet Crepe","Pancake & Crepes",350],
+  // Fruit Bowls
+  ["Classic Fresh Fruit Bowl","Fruit Bowls",200],
+  ["Yogurt Fruit Bowl","Fruit Bowls",250],
+  ["Protein Fruit Bowl","Fruit Bowls",300],
+];
+
+/* ---------------- State ---------------- */
+let menuItems = [];   // [{id,name,category,price}]
+let cart = [];         // [{id,name,price,qty}]
+let activeCat = 'All';
+let payMethod = 'Cash';
+let orders = [];
+
+/* ---------------- Init & Seed ---------------- */
+async function initMenu(){
+  db.collection('menuItems').onSnapshot(snap=>{
+    menuItems = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    setStatus(true,'Synced');
+    renderCats();
+    renderGrid();
+    renderMgmtList();
+    renderCatDatalist();
+  }, err=>{
+    console.error(err);
+    setStatus(false,'Offline / error');
+  });
+
+  const snap = await db.collection('menuItems').limit(1).get();
+  if(snap.empty){
+    setStatus(true,'Setting up menu…');
+    const batch = db.batch();
+    SEED_MENU.forEach(([name,category,price])=>{
+      const ref = db.collection('menuItems').doc();
+      batch.set(ref,{name,category,price});
+    });
+    await batch.commit();
+    showToast('Menu loaded ✓');
+  }
+}
+
+function initOrders(){
+  db.collection('orders').orderBy('timestamp','desc').limit(200).onSnapshot(snap=>{
+    orders = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderHistory();
+  });
+}
+
+/* ---------------- Billing View ---------------- */
+function renderCats(){
+  const cats = ['All', ...new Set(menuItems.map(i=>i.category))];
+  const el = document.getElementById('cats');
+  el.innerHTML = cats.map(c=>
+    `<button class="${c===activeCat?'active':''}" onclick="setCat('${c.replace(/'/g,"\\'")}')">${c}</button>`
+  ).join('');
+}
+function setCat(c){
+  activeCat = c;
+  const sb = document.getElementById('searchBox');
+  if(sb) sb.value = '';
+  renderCats();
+  renderGrid();
+}
+
+function renderGrid(){
+  const items = activeCat==='All' ? menuItems : menuItems.filter(i=>i.category===activeCat);
+  const grid = document.getElementById('itemGrid');
+  document.getElementById('gridEmpty').style.display = items.length ? 'none' : 'block';
+  grid.innerHTML = items.map(i=>
+    `<div class="item-card" onclick="addToCart('${i.id}')">
+      <div class="name">${i.name}</div>
+      <div class="price">₹${i.price}</div>
+    </div>`
+  ).join('');
+}
+
+function addToCart(id){
+  const item = menuItems.find(i=>i.id===id);
+  if(!item) return;
+  const existing = cart.find(c=>c.id===id && (!c.addons || c.addons.length===0));
+  if(existing) existing.qty++;
+  else cart.push({key: 'k'+Date.now()+Math.random().toString(36).slice(2), id:item.id, name:item.name, price:item.price, qty:1, addons:[]});
+  renderCartBar();
+}
+
+function lineTotal(c){
+  const addonSum = (c.addons||[]).reduce((s,a)=>s+a.price,0);
+  return (c.price + addonSum) * c.qty;
+}
+
+function renderCartBar(){
+  const bar = document.getElementById('cartBar');
+  const totalItems = cart.reduce((s,c)=>s+c.qty,0);
+  const total = cart.reduce((s,c)=>s+lineTotal(c),0);
+  bar.style.display = cart.length ? 'flex' : 'none';
+  document.getElementById('cartCount').textContent = totalItems + ' item' + (totalItems===1?'':'s');
+  document.getElementById('cartTotalBar').textContent = '₹' + total;
+  renderCartSheet();
+}
+
+function renderCartSheet(){
+  const body = document.getElementById('cartBody');
+  if(!cart.length){
+    body.innerHTML = '<div class="empty">Cart is empty. Tap items to add them.</div>';
+  } else {
+    body.innerHTML = cart.map(c=>{
+      const addonsHtml = (c.addons||[]).map((a,idx)=>
+        `<span class="addon-chip">${a.name} +₹${a.price}<button onclick="removeAddon('${c.key}',${idx})">✕</button></span>`
+      ).join('');
+      return `<div class="cart-row">
+        <div class="info">
+          <div class="n">${c.name}</div>
+          <div class="p">₹${c.price} each${c.addons&&c.addons.length? ' + add-ons':''}</div>
+          <div class="addon-list">${addonsHtml}</div>
+          <button class="add-addon-btn" onclick="promptAddon('${c.key}')">+ Add-on</button>
+        </div>
+        <div class="qty">
+          <button onclick="changeQty('${c.key}',-1)">−</button>
+          <span>${c.qty}</span>
+          <button onclick="changeQty('${c.key}',1)">+</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  const total = cart.reduce((s,c)=>s+lineTotal(c),0);
+  document.getElementById('cartTotalSheet').textContent = '₹' + total;
+  document.getElementById('checkoutBtn').disabled = cart.length===0;
+}
+
+function changeQty(key, delta){
+  const c = cart.find(c=>c.key===key);
+  if(!c) return;
+  c.qty += delta;
+  if(c.qty<=0) cart = cart.filter(x=>x.key!==key);
+  renderCartBar();
+}
+
+function promptAddon(key){
+  const name = prompt('Add-on name (e.g. Extra Cheese, No Sugar):');
+  if(!name) return;
+  const priceStr = prompt('Extra price for this add-on (₹), enter 0 if free:', '0');
+  const price = parseFloat(priceStr);
+  if(isNaN(price) || price<0) return;
+  const c = cart.find(c=>c.key===key);
+  if(!c) return;
+  c.addons = c.addons || [];
+  c.addons.push({name: name.trim(), price});
+  renderCartBar();
+}
+
+function removeAddon(key, idx){
+  const c = cart.find(c=>c.key===key);
+  if(!c) return;
+  c.addons.splice(idx,1);
+  renderCartBar();
+}
+
+function openCart(){ document.getElementById('cartOverlay').classList.add('show'); }
+function closeCart(){ document.getElementById('cartOverlay').classList.remove('show'); }
+
+function selectPay(m){
+  payMethod = m;
+  document.querySelectorAll('#payMethods button').forEach(b=>{
+    b.classList.toggle('sel', b.dataset.method===m);
+  });
+}
+
+let lastOrder = null;
+
+async function checkout(){
+  if(!cart.length) return;
+  const total = cart.reduce((s,c)=>s+lineTotal(c),0);
+  const guests = parseInt(document.getElementById('guestCount').value) || 1;
+  let phone = document.getElementById('guestPhone').value.replace(/[^0-9]/g,'');
+  if(phone.length === 10) phone = '91' + phone;
+  if(phone.length < 11) phone = '';
+  const btn = document.getElementById('checkoutBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    const orderData = {
+      items: cart.map(c=>({name:c.name, price:c.price, qty:c.qty, addons:c.addons||[]})),
+      total,
+      guests,
+      phone: phone || null,
+      paymentMethod: payMethod,
+      staff: currentStaff || 'Unknown',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('orders').add(orderData);
+
+    if(phone){
+      await db.collection('customers').doc(phone).set({
+        phone,
+        lastVisit: firebase.firestore.FieldValue.serverTimestamp(),
+        totalOrders: firebase.firestore.FieldValue.increment(1),
+        totalSpent: firebase.firestore.FieldValue.increment(total)
+      }, {merge:true});
+    }
+
+    lastOrder = {...orderData, timestamp: new Date()};
+    cart = [];
+    renderCartBar();
+    closeCart();
+    document.getElementById('guestCount').value = 1;
+    document.getElementById('guestPhone').value = '';
+    showReceipt(lastOrder);
+  } catch(e){
+    console.error(e);
+    showToast('Failed to save order. Check connection.');
+  }
+  btn.disabled = false; btn.textContent = 'Complete Order';
+}
+
+/* ---------------- Receipt / WhatsApp / Print ---------------- */
+function itemLine(i){
+  const addonSum = (i.addons||[]).reduce((s,a)=>s+a.price,0);
+  return (i.price + addonSum) * i.qty;
+}
+
+function buildReceiptText(order){
+  const lines = [];
+  lines.push('THE YOGIC BOWL');
+  lines.push(order.timestamp.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}));
+  lines.push(`Guests: ${order.guests||1}`);
+  lines.push('--------------------------');
+  order.items.forEach(i=>{
+    lines.push(`${i.qty} x ${i.name}`);
+    (i.addons||[]).forEach(a=> lines.push(`      + ${a.name} (₹${a.price})`) );
+    lines.push(`      ₹${itemLine(i)}`);
+  });
+  lines.push('--------------------------');
+  lines.push(`TOTAL: ₹${order.total}`);
+  lines.push(`Paid via: ${order.paymentMethod}`);
+  lines.push('--------------------------');
+  lines.push('🌼 Thank you for visiting us — see you again soon! 🌼');
+  return lines.join('\n');
+}
+
+function showReceipt(order){
+  const preview = document.getElementById('receiptPreview');
+  const itemRows = order.items.map(i=>{
+    const addonsHtml = (i.addons||[]).map(a=>
+      `<div class="rline" style="font-size:11px;color:#888;"><span>&nbsp;&nbsp;+ ${a.name}</span><span>₹${a.price}</span></div>`
+    ).join('');
+    return `<div class="rline"><span>${i.qty}x ${i.name}</span><span>₹${itemLine(i)}</span></div>${addonsHtml}`;
+  }).join('');
+  preview.innerHTML = `
+    <div class="biz">THE YOGIC BOWL</div>
+    <div class="sub">${order.timestamp.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})} · ${order.guests||1} guest${(order.guests||1)>1?'s':''}</div>
+    <hr>
+    ${itemRows}
+    <hr>
+    <div class="rline" style="font-weight:700;"><span>TOTAL</span><span>₹${order.total}</span></div>
+    <div class="rline"><span>Paid via</span><span>${order.paymentMethod}</span></div>
+    <hr>
+    <div style="text-align:center;font-size:12px;">🌼 Thank you for visiting us — see you again soon! 🌼</div>
+  `;
+  document.getElementById('receiptOverlay').classList.add('show');
+}
+
+function closeReceipt(){
+  document.getElementById('receiptOverlay').classList.remove('show');
+}
+
+function sendWhatsApp(){
+  if(!lastOrder) return;
+  let phone = lastOrder.phone;
+  if(!phone){
+    let entered = prompt('No number saved for this order. Enter guest\'s WhatsApp number (10 digits):');
+    if(!entered) return;
+    phone = entered.replace(/[^0-9]/g,'');
+    if(phone.length === 10) phone = '91' + phone;
+  }
+  if(phone.length < 11){
+    showToast('That number looks too short — check and try again');
+    return;
+  }
+  const text = encodeURIComponent(buildReceiptText(lastOrder));
+  window.location.href = `https://wa.me/${phone}?text=${text}`;
+}
+
+function printReceipt(){
+  if(!lastOrder) return;
+  const area = document.getElementById('printArea');
+  const itemRows = lastOrder.items.map(i=>{
+    const addonsHtml = (i.addons||[]).map(a=>
+      `<div style="display:flex;justify-content:space-between;font-size:10px;color:#555;"><span>&nbsp;&nbsp;+ ${a.name}</span><span>₹${a.price}</span></div>`
+    ).join('');
+    return `<div style="display:flex;justify-content:space-between;"><span>${i.qty}x ${i.name}</span><span>₹${itemLine(i)}</span></div>${addonsHtml}`;
+  }).join('');
+  area.innerHTML = `
+    <div style="text-align:center;font-weight:bold;font-size:14px;">THE YOGIC BOWL</div>
+    <div style="text-align:center;font-size:11px;margin-bottom:8px;">${lastOrder.timestamp.toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}</div>
+    <div>--------------------------------</div>
+    ${itemRows}
+    <div>--------------------------------</div>
+    <div style="display:flex;justify-content:space-between;font-weight:bold;"><span>TOTAL</span><span>₹${lastOrder.total}</span></div>
+    <div style="display:flex;justify-content:space-between;"><span>Paid via</span><span>${lastOrder.paymentMethod}</span></div>
+    <div style="text-align:center;margin-top:10px;">🌼 Thank you for visiting us — see you again soon! 🌼</div>
+  `;
+  window.print();
+}
+
+/* ---------------- Menu Management View ---------------- */
+function renderCatDatalist(){
+  const cats = [...new Set(menuItems.map(i=>i.category))];
+  document.getElementById('catList').innerHTML = cats.map(c=>`<option value="${c}">`).join('');
+}
+
+async function addItem(){
+  const name = document.getElementById('newName').value.trim();
+  const category = document.getElementById('newCat').value.trim();
+  const price = parseFloat(document.getElementById('newPrice').value);
+  if(!name || !category || !price || price<=0){
+    showToast('Fill in name, category and a valid price');
+    return;
+  }
+  await db.collection('menuItems').add({name, category, price});
+  document.getElementById('newName').value='';
+  document.getElementById('newCat').value='';
+  document.getElementById('newPrice').value='';
+  showToast('Item added ✓');
+}
+
+async function deleteItem(id){
+  if(!confirm('Remove this item from the menu?')) return;
+  await db.collection('menuItems').doc(id).delete();
+}
+
+function renderMgmtList(){
+  const groups = {};
+  menuItems.forEach(i=>{
+    groups[i.category] = groups[i.category] || [];
+    groups[i.category].push(i);
+  });
+  const el = document.getElementById('mgmtList');
+  el.innerHTML = Object.keys(groups).sort().map(cat=>`
+    <div class="cat-group">
+      <div class="cat-title">${cat}</div>
+      ${groups[cat].map(i=>`
+        <div class="mgmt-row">
+          <div><span class="n">${i.name}</span><span class="p">₹${i.price}</span></div>
+          <button class="del" onclick="deleteItem('${i.id}')">✕</button>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+/* ---------------- History View ---------------- */
+function renderHistory(){
+  const list = document.getElementById('orderList');
+  const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
+
+  const todayOrders = orders.filter(o=>{
+    if(!o.timestamp || !o.timestamp.toDate) return false;
+    return o.timestamp.toDate() >= startOfToday;
+  });
+  const todayTotal = todayOrders.reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('todayTotal').textContent = '₹' + todayTotal;
+  document.getElementById('todayCount').textContent = todayOrders.length;
+
+  document.getElementById('historyEmpty').style.display = orders.length ? 'none' : 'block';
+  list.innerHTML = orders.map(o=>{
+    const time = o.timestamp && o.timestamp.toDate ? o.timestamp.toDate().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '…';
+    const itemsStr = (o.items||[]).map(i=>{
+      const addonStr = (i.addons&&i.addons.length) ? ` (+${i.addons.map(a=>a.name).join(', ')})` : '';
+      return `${i.qty}× ${i.name}${addonStr}`;
+    }).join(', ');
+    return `<div class="order-card">
+      <div class="top"><span>${time}</span><span class="tag">${o.paymentMethod||'—'}${o.staff?' · '+o.staff:''}</span></div>
+      <div class="items">${itemsStr}</div>
+      <div class="bottom"><span></span><span class="total">₹${o.total}</span></div>
+    </div>`;
+  }).join('');
+
+  renderBestSellers();
+}
+
+function renderBestSellers(){
+  const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
+  const counts = {};
+  orders.forEach(o=>{
+    if(!o.timestamp || !o.timestamp.toDate) return;
+    if(o.timestamp.toDate() < sevenDaysAgo) return;
+    (o.items||[]).forEach(i=>{
+      counts[i.name] = (counts[i.name]||0) + i.qty;
+    });
+  });
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const el = document.getElementById('bestSellers');
+  if(!sorted.length){
+    el.innerHTML = '<div class="empty">No sales yet this week.</div>';
+    return;
+  }
+  el.innerHTML = sorted.map(([name,qty],idx)=>
+    `<div class="bestseller-row"><span><span class="rank">#${idx+1}</span>${name}</span><span>${qty} sold</span></div>`
+  ).join('');
+}
+
+/* ---------------- Search ---------------- */
+function onSearch(query){
+  const q = query.trim().toLowerCase();
+  const grid = document.getElementById('itemGrid');
+  const items = q
+    ? menuItems.filter(i=>i.name.toLowerCase().includes(q))
+    : (activeCat==='All' ? menuItems : menuItems.filter(i=>i.category===activeCat));
+  document.getElementById('gridEmpty').style.display = items.length ? 'none' : 'block';
+  grid.innerHTML = items.map(i=>
+    `<div class="item-card" onclick="addToCart('${i.id}')">
+      <div class="name">${i.name}</div>
+      <div class="price">₹${i.price}</div>
+    </div>`
+  ).join('');
+}
+
+/* ---------------- Staff Login & Management ---------------- */
+let staffList = [];
+let currentStaff = null;
+
+function initStaff(){
+  db.collection('staff').onSnapshot(snap=>{
+    staffList = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderStaffList();
+    renderLoginDropdown();
+  });
+}
+
+function renderLoginDropdown(){
+  const sel = document.getElementById('loginStaffSelect');
+  if(!staffList.length){
+    sel.innerHTML = '<option value="">No staff added yet — ask owner to add you</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">Select your name</option>' +
+    staffList.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function attemptLogin(){
+  const id = document.getElementById('loginStaffSelect').value;
+  const pin = document.getElementById('loginPin').value;
+  const staff = staffList.find(s=>s.id===id);
+  const err = document.getElementById('loginErr');
+  if(!staff || staff.pin !== pin){
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+  currentStaff = staff.name;
+  localStorage.setItem('yb_staff', staff.name);
+  document.getElementById('loginScreen').classList.add('hide');
+  document.getElementById('currentStaffTag').textContent = '👤 ' + staff.name;
+}
+
+function logoutStaff(){
+  if(!confirm('Log out ' + currentStaff + '?')) return;
+  currentStaff = null;
+  localStorage.removeItem('yb_staff');
+  document.getElementById('loginPin').value = '';
+  document.getElementById('loginScreen').classList.remove('hide');
+}
+
+function checkExistingLogin(){
+  const saved = localStorage.getItem('yb_staff');
+  if(saved){
+    currentStaff = saved;
+    document.getElementById('loginScreen').classList.add('hide');
+    document.getElementById('currentStaffTag').textContent = '👤 ' + saved;
+  }
+}
+
+async function addStaff(){
+  const name = document.getElementById('newStaffName').value.trim();
+  const pin = document.getElementById('newStaffPin').value.trim();
+  if(!name || !/^\d{4}$/.test(pin)){
+    showToast('Enter a name and a 4-digit PIN');
+    return;
+  }
+  await db.collection('staff').add({name, pin});
+  document.getElementById('newStaffName').value = '';
+  document.getElementById('newStaffPin').value = '';
+  showToast('Staff added ✓');
+}
+
+async function deleteStaff(id){
+  if(!confirm('Remove this staff member?')) return;
+  await db.collection('staff').doc(id).delete();
+}
+
+function renderStaffList(){
+  const el = document.getElementById('staffList');
+  if(!staffList.length){
+    el.innerHTML = '<div class="empty">No staff added yet.</div>';
+    return;
+  }
+  el.innerHTML = staffList.map(s=>
+    `<div class="staff-row"><span class="n">${s.name}</span><button class="del" onclick="deleteStaff('${s.id}')">✕</button></div>`
+  ).join('');
+}
+
+/* ---------------- Nav / Toast ---------------- */
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ---------------- Boot ---------------- */
+initMenu();
+initOrders();
+initStaff();
+checkExistingLogin();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
