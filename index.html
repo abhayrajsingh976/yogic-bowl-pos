@@ -1047,11 +1047,69 @@ function initInventory(){
     updateLowStockBadge();
   });
 }
+  async function addInventoryItem(){
+  const name = document.getElementById('invName').value.trim();
+  const qty = parseFloat(document.getElementById('invQty').value);
+  const unit = document.getElementById('invUnit').value.trim();
+  const threshold = parseFloat(document.getElementById('invThreshold').value);
+  if(!name || isNaN(qty) || isNaN(threshold)){
+    showToast('Fill in item name, quantity and threshold');
+    return;
+  }
+  await db.collection('inventory').add({name, qty, unit, threshold});
+  document.getElementById('invName').value = '';
+  document.getElementById('invQty').value = '';
+  document.getElementById('invUnit').value = '';
+  document.getElementById('invThreshold').value = '';
+  showToast('Item added ✓');
+}
+  async function updateInventoryQty(id, delta){
+  const item = inventoryList.find(i=>i.id===id);
+  if(!item) return;
+  const newQty = Math.max(0, (item.qty||0) + delta);
+  await db.collection('inventory').doc(id).update({qty: newQty});
+}
+
+async function deleteInventoryItem(id){
+  if(!confirm('Remove this inventory item?')) return;
+  await db.collection('inventory').doc(id).delete();
+}
+  function renderInventoryList(){
+  const el = document.getElementById('inventoryList');
+  if(!inventoryList.length){
+    el.innerHTML = '<div class="empty">No inventory items yet.</div>';
+    return;
+  }
+  const sorted = [...inventoryList].sort((a,b)=>(a.qty<=a.threshold ? -1 : 1) - (b.qty<=b.threshold ? -1 : 1));
+  el.innerHTML = sorted.map(i=>{
+    const low = i.qty <= i.threshold;
+    return `<div class="staff-row" style="${low?'background:#fdeaea;':''}">
+      <span class="n">${low?'⚠️ ':''}${i.name} — ${i.qty} ${i.unit||''} ${low?'(low!)':''}</span>
+      <span style="display:flex;gap:6px;align-items:center;">
+        <button onclick="updateInventoryQty('${i.id}',-1)" style="padding:4px 10px;">–</button>
+        <button onclick="updateInventoryQty('${i.id}',1)" style="padding:4px 10px;">+</button>
+        <button class="del" onclick="deleteInventoryItem('${i.id}')">✕</button>
+      </span>
+    </div>`;
+  }).join('');
+}
+
+function updateLowStockBadge(){
+  const count = inventoryList.filter(i=>i.qty <= i.threshold).length;
+  const badge = document.getElementById('lowStockBadge');
+  if(count > 0){
+    badge.style.display = 'inline-block';
+    badge.textContent = count;
+  } else {
+    badge.style.display = 'none';
+  }
+}
 /* ---------------- Boot ---------------- */
 initMenu();
 initOrders();
 initStaff();
 checkExistingLogin();
+  initInventory();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', ()=>{
