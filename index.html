@@ -255,6 +255,7 @@
   <button data-view="menu">Menu</button>
   <button data-view="staff">Staff</button>
   <button data-view="history">Sales</button>
+  <button data-view="inventory">Inventory <span id="lowStockBadge" style="display:none;background:#e74c3c;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;margin-left:4px;">0</span></button>
 </nav>
 
 <main>
@@ -267,6 +268,22 @@
     <div class="grid" id="itemGrid"></div>
     <div class="empty" id="gridEmpty" style="display:none;">No items in this category yet. Add some in the Menu tab.</div>
   </section>
+  <!-- INVENTORY VIEW -->
+<section class="view" id="view-inventory">
+  <div class="mgmt-add">
+    <h3>Add inventory item</h3>
+    <div class="form-row">
+      <input type="text" id="invName" placeholder="Item name (e.g. Milk)">
+      <input type="number" id="invQty" placeholder="Current qty" style="max-width:100px;">
+      <input type="text" id="invUnit" placeholder="Unit (kg/L/pcs)" style="max-width:100px;">
+      <input type="number" id="invThreshold" placeholder="Low-stock at" style="max-width:110px;">
+    </div>
+    <div class="form-row">
+      <button onclick="addInventoryItem()">+ Add Item</button>
+    </div>
+  </div>
+  <div class="mgmt-list" id="inventoryList"></div>
+</section>
 
 
   <!-- MENU MANAGEMENT VIEW -->
