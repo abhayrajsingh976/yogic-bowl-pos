@@ -648,7 +648,7 @@ function renderCartSheet(){
       return `<div class="cart-row">
         <div class="info">
           <div class="n">${c.name}</div>
-          <div class="p">₹${c.price} each${c.addons&&c.addons.length? ' + add-ons':''}</div>
+          <div class="p" onclick="editPrice('${c.key}')" style="cursor:pointer;text-decoration:underline dotted;">₹${c.price} each${c.addons&&c.addons.length? ' + add-ons':''} ✏️</div>
           <div class="addon-list">${addonsHtml}</div>
           <button class="add-addon-btn" onclick="promptAddon('${c.key}')">+ Add-on</button>
         </div>
