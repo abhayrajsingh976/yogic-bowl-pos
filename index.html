@@ -827,7 +827,8 @@ function showReceipt(order){
     <div id="upiQR" style="text-align:center;margin:10px 0;"></div>
     <div style="text-align:center;font-size:12px;">🌼 Thank you for visiting us — see you again soon! 🌼</div>
   `;
-  if(order.status !== 'paid') generateUPIQR(order.total, order.id || lastOrderId);document.getElementById('markPaidBox').style.display = order.status === 'paid' ? 'none' : 'block';
+  if(order.status !== 'paid') { try { generateUPIQR(order.total, order.id || lastOrderId); } catch(err) { console.error('QR error:', err); } }
+document.getElementById('markPaidBox').style.display = order.status === 'paid' ? 'none' : 'block';
   document.getElementById('receiptOverlay').classList.add('show');
 }
 
