@@ -812,6 +812,22 @@ function showReceipt(order){
 function closeReceipt(){
   document.getElementById('receiptOverlay').classList.remove('show');
 }
+  async function markPaid(method){
+  if(!lastOrderId) return;
+  try{
+    await db.collection('orders').doc(lastOrderId).update({
+      status: 'paid',
+      paymentMethod: method
+    });
+    lastOrder.status = 'paid';
+    lastOrder.paymentMethod = method;
+    document.getElementById('markPaidBox').style.display = 'none';
+    showToast('Marked as Paid — ' + method);
+  } catch(e){
+    console.error(e);
+    showToast('Failed to update payment status');
+  }
+  }
 
 function sendWhatsApp(){
   if(!lastOrder) return;
