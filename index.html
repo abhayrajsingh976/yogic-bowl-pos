@@ -691,6 +691,18 @@ function removeAddon(key, idx){
   if(!c) return;
   c.addons.splice(idx,1);
   renderCartBar();
+}function editPrice(key){
+  const c = cart.find(c=>c.key===key);
+  if(!c) return;
+  const newPrice = prompt('Edit price for ' + c.name + ' (₹)', c.price);
+  if(newPrice === null) return;
+  const p = parseFloat(newPrice);
+  if(isNaN(p) || p < 0){
+    showToast('Enter a valid price');
+    return;
+  }
+  c.price = p;
+  renderCartBar();
 }
 
 function openCart(){ document.getElementById('cartOverlay').classList.add('show'); }
