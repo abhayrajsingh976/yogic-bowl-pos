@@ -801,12 +801,9 @@ function generateUPIQR(amount, orderId) {
   const upiString = `upi://pay?pa=yespay.bizsbiz46206@yesbankltd&pn=The%20Yogic%20Bowl&am=${amount}&cu=INR&tn=Order%20${orderId}`;
   const container = document.getElementById('upiQR');
   if (container) {
-    container.innerHTML = '';
-    QRCode.toCanvas(document.createElement('canvas'), upiString, { width: 160 }, (err, canvas) => {
-      if (!err) container.appendChild(canvas);
-    });
+    container.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(upiString)}" width="160" height="160" alt="Scan to pay">`;
   }
-             }
+}
 function showReceipt(order){
   const preview = document.getElementById('receiptPreview');
   const itemRows = order.items.map(i=>{
