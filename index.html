@@ -801,10 +801,11 @@ function showReceipt(order){
     ${itemRows}
     <hr>
     <div class="rline" style="font-weight:700;"><span>TOTAL</span><span>₹${order.total}</span></div>
-    <div class="rline"><span>Paid via</span><span>${order.paymentMethod}</span></div>
+    <div class="rline"><span>Status</span><span>${order.status==='paid' ? 'Paid via '+order.paymentMethod : '⏳ Pending'}</span></div>
     <hr>
     <div style="text-align:center;font-size:12px;">🌼 Thank you for visiting us — see you again soon! 🌼</div>
   `;
+  document.getElementById('markPaidBox').style.display = order.status === 'paid' ? 'none' : 'block';
   document.getElementById('receiptOverlay').classList.add('show');
 }
 
