@@ -378,7 +378,14 @@
     </div>
     <div class="sheet-body">
       <div id="receiptPreview"></div>
-      <div class="receipt-actions">
+     <div id="markPaidBox" style="margin:10px 0;">
+  <div class="pay-methods">
+    <button onclick="markPaid('Cash')">Mark Paid — Cash</button>
+    <button onclick="markPaid('UPI')">Mark Paid — UPI</button>
+    <button onclick="markPaid('Card')">Mark Paid — Card</button>
+  </div>
+     </div>
+    <div class="receipt-actions">
         <button class="btn-whatsapp" onclick="sendWhatsApp()">📱 Send via WhatsApp</button>
         <button class="btn-print" onclick="printReceipt()">🖨️ Print Receipt</button>
         <button class="btn-newsale" onclick="closeReceipt()">Start New Order</button>
@@ -709,6 +716,7 @@ function openCart(){ document.getElementById('cartOverlay').classList.add('show'
 function closeCart(){ document.getElementById('cartOverlay').classList.remove('show'); }
 
 function selectPay(m){
+  
   payMethod = m;
   document.querySelectorAll('#payMethods button').forEach(b=>{
     b.classList.toggle('sel', b.dataset.method===m);
@@ -716,6 +724,7 @@ function selectPay(m){
 }
 
 let lastOrder = null;
+  let lastOrderId = null;
 
 async function checkout(){
   if(!cart.length) return;
@@ -733,10 +742,12 @@ async function checkout(){
       guests,
       phone: phone || null,
       paymentMethod: payMethod,
+      status: 'pending',
       staff: currentStaff || 'Unknown',
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     };
-    await db.collection('orders').add(orderData);
+    const docRef = await db.collection('orders').add(orderData);
+lastOrderId = docRef.id;
 
     if(phone){
       await db.collection('customers').doc(phone).set({
@@ -747,7 +758,7 @@ async function checkout(){
       }, {merge:true});
     }
 
-    lastOrder = {...orderData, timestamp: new Date()};
+    lastOrder = {...orderData, id: docRef.id, timestamp: new Date()};
     cart = [];
     renderCartBar();
     closeCart();
