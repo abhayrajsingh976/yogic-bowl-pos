@@ -957,11 +957,20 @@ function renderHistory(){
     return `<div class="order-card">
       <div class="top"><span>${time}</span><span class="tag">${o.paymentMethod||'—'}${o.staff?' · '+o.staff:''}</span></div>
       <div class="items">${itemsStr}</div>
-      <div class="bottom"><span></span><span class="total">₹${o.total}</span></div>
+      <div class="bottom"><button onclick="deleteOrder('${o.id}')" style="background:none;border:none;color:#b25454;font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button><span class="total">₹${o.total}</span></div>
     </div>`;
   }).join('');
 
   renderBestSellers();
+}async function deleteOrder(orderId){
+  if(!confirm('Delete this order? This cannot be undone.')) return;
+  try{
+    await db.collection('orders').doc(orderId).delete();
+    showToast('Order deleted');
+  }catch(e){
+    console.error(e);
+    showToast('Failed to delete order');
+  }
 }
 
 function renderBestSellers(){
