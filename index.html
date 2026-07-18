@@ -342,10 +342,20 @@
 
   <!-- HISTORY VIEW -->
   <section class="view" id="view-history">
-    <div class="stat-cards">
-      <div class="stat-card"><div class="label">Today's Sales</div><div class="val" id="todayTotal">₹0</div></div>
-      <div class="stat-card"><div class="label">Today's Orders</div><div class="val" id="todayCount">0</div></div>
-    </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;">
+    <button id="rangeTodayBtn" onclick="setSalesRange('today')" style="flex:1;padding:9px;border-radius:20px;border:1px solid var(--line);background:var(--olive);color:#fff;font-size:13px;font-weight:600;">Today</button>
+    <button id="rangeMonthBtn" onclick="setSalesRange('month')" style="flex:1;padding:9px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--olive-dark);font-size:13px;font-weight:600;">This Month</button>
+  </div>
+  <div class="stat-cards">
+    <div class="stat-card"><div class="label" id="salesLabel">Today's Sales</div><div class="val" id="todayTotal">₹0</div></div>
+    <div class="stat-card"><div class="label" id="ordersLabel">Today's Orders</div><div class="val" id="todayCount">0</div></div>
+    <div class="stat-card"><div class="label" id="expLabel">Today's Expenses</div><div class="val" id="todayExpenses" style="color:var(--bad);">₹0</div></div>
+    <div class="stat-card"><div class="label" id="profitLabel">Today's Profit</div><div class="val" id="todayProfit" style="color:var(--good);">₹0</div></div>
+  </div>
+  <div id="dailyBreakdownWrap" style="display:none;">
+    <div class="cat-title" style="font-weight:700;color:var(--olive-dark);margin:16px 0 8px;">📅 Daily Breakdown</div>
+    <div id="dailyBreakdown"></div>
+  </div>
     <div class="cat-title" style="font-weight:700;color:var(--olive-dark);margin:14px 0 8px;">🔥 Best Sellers (last 7 days)</div>
     <div id="bestSellers"></div>
     <div class="cat-title" style="font-weight:700;color:var(--olive-dark);margin:16px 0 8px;">Recent Orders</div>
