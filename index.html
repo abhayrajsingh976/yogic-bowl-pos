@@ -1134,7 +1134,66 @@ function showToast(msg){
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
 }
 /* ---------------- Inventory ---------------- */
-let inventoryList = [];
+/* ---------------- Expenses ---------------- */
+let expensesList = [];
+
+function initExpenses(){
+  db.collection('expenses').orderBy('timestamp','desc').limit(200).onSnapshot(snap=>{
+    expensesList = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderExpensesList();
+  });
+}
+
+async function addExpense(){
+  const amount = parseFloat(document.getElementById('expAmount').value);
+  const category = document.getElementById('expCategory').value;
+  const note = document.getElementById('expNote').value.trim();
+  if(isNaN(amount) || amount <= 0){
+    showToast('Enter a valid amount');
+    return;
+  }
+  try{
+    await db.collection('expenses').add({
+      amount, category, note: note || null,
+      staff: currentStaff || 'Unknown',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    document.getElementById('expAmount').value = '';
+    document.getElementById('expNote').value = '';
+    showToast('Expense added');
+  }catch(e){
+    console.error(e);
+    showToast('Failed to add expense');
+  }
+}
+
+async function deleteExpense(id){
+  if(!confirm('Delete this expense?')) return;
+  try{
+    await db.collection('expenses').doc(id).delete();
+    showToast('Expense deleted');
+  }catch(e){
+    console.error(e);
+    showToast('Failed to delete expense');
+  }
+}
+
+function renderExpensesList(){
+  const list = document.getElementById('expensesList');
+  if(!expensesList.length){
+    list.innerHTML = '<div class="empty">No expenses recorded yet.</div>';
+    return;
+  }
+  list.innerHTML = expensesList.map(e=>{
+    const time = e.timestamp && e.timestamp.toDate ? e.timestamp.toDate().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '…';
+    return `<div class="order-card">
+      <div class="top"><span>${time}</span><span class="tag">${e.category}</span></div>
+      <div class="items">${e.note || 'No note'}</div>
+      <div class="bottom"><button onclick="deleteExpense('${e.id}')" style="background:none;border:none;color:#b25454;font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button><span class="total">₹${e.amount}</span></div>
+    </div>`;
+  }).join('');
+}
+  let inventoryList = [];
 
 function initInventory(){
   db.collection('inventory').onSnapshot(snap=>{
