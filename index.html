@@ -1265,21 +1265,76 @@ async function deleteExpense(id){
   }
 }
 
+let expandedExpenseDays = {};
+
+function toggleExpenseDay(key){
+  expandedExpenseDays[key] = !expandedExpenseDays[key];
+  renderExpensesList();
+}
+
 function renderExpensesList(){
   const list = document.getElementById('expensesList');
   if(!expensesList.length){
     list.innerHTML = '<div class="empty">No expenses recorded yet.</div>';
     return;
   }
-  list.innerHTML = expensesList.map(e=>{
+
+  const startOfToday = new Date();
+  startOfToday.setHours(0,0,0,0);
+
+  function dayKeyOf(date){
+    const y = date.getFullYear();
+    const m = String(date.getMonth()+1).padStart(2,'0');
+    const d = String(date.getDate()).padStart(2,'0');
+    return y+'-'+m+'-'+d;
+  }
+
+  function expenseCard(e){
     const time = e.timestamp && e.timestamp.toDate ? e.timestamp.toDate().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '…';
     return `<div class="order-card">
       <div class="top"><span>${time}</span><span class="tag">${e.category}</span></div>
       <div class="items">${e.note || 'No note'}</div>
       <div class="bottom"><button onclick="deleteExpense('${e.id}')" style="background:none;border:none;color:#b25454;font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button><span class="total">₹${e.amount}</span></div>
     </div>`;
+  }
+
+  const todayExpenses = [];
+  const pastByDay = {};
+
+  expensesList.forEach(e=>{
+    if(!e.timestamp || !e.timestamp.toDate){ todayExpenses.push(e); return; }
+    const d = e.timestamp.toDate();
+    if(d >= startOfToday){
+      todayExpenses.push(e);
+    } else {
+      const key = dayKeyOf(d);
+      pastByDay[key] = pastByDay[key] || [];
+      pastByDay[key].push(e);
+    }
+  });
+
+  let html = todayExpenses.map(expenseCard).join('');
+
+  const dayKeys = Object.keys(pastByDay).sort().reverse();
+  html += dayKeys.map(key=>{
+    const dayExpenses = pastByDay[key];
+    const total = dayExpenses.reduce((s,e)=>s+(e.amount||0),0);
+    const displayDate = new Date(key).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+    const isOpen = !!expandedExpenseDays[key];
+    let block = `<div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;" onclick="toggleExpenseDay('${key}')">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-weight:600;font-size:13px;">${displayDate} ${isOpen ? '▲' : '▼'}</div>
+        <div style="color:var(--bad);font-weight:700;font-size:14px;">₹${total}</div>
+      </div>
+    </div>`;
+    if(isOpen){
+      block += `<div style="margin:-4px 0 8px 0;">${dayExpenses.map(expenseCard).join('')}</div>`;
+    }
+    return block;
   }).join('');
-}
+
+  list.innerHTML = html || '<div class="empty">No expenses recorded yet.</div>';
+  }
   let inventoryList = [];
 
 function initInventory(){
