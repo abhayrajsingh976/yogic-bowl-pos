@@ -1227,6 +1227,7 @@ function initExpenses(){
   db.collection('expenses').orderBy('timestamp','desc').limit(200).onSnapshot(snap=>{
     expensesList = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderExpensesList();
+    if(typeof renderHistory === 'function') renderHistory();
   });
 }
 
