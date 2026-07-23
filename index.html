@@ -1044,16 +1044,6 @@ let startDate = new Date();
     } else {
       breakdownWrap.style.display = 'none';
     }
-  const startOfToday = new Date(); startOfToday.setHours(0,0,0,0);
-
-  const todayOrders = orders.filter(o=>{
-    if(!o.timestamp || !o.timestamp.toDate) return false;
-    return o.timestamp.toDate() >= startOfToday;
-  });
-  const todayTotal = todayOrders.reduce((s,o)=>s+(o.total||0),0);
-  document.getElementById('todayTotal').textContent = '₹' + todayTotal;
-  document.getElementById('todayCount').textContent = todayOrders.length;
-
   document.getElementById('historyEmpty').style.display = orders.length ? 'none' : 'block';
   list.innerHTML = orders.map(o=>{
     const time = o.timestamp && o.timestamp.toDate ? o.timestamp.toDate().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '…';
