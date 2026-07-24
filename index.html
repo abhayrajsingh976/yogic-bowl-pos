@@ -779,9 +779,11 @@ function renderCartSheet(){
 
 function changeQty(key, delta){
   const c = cart.find(c=>c.key===key);
+  
   if(!c) return;
   c.qty += delta;
   if(c.qty<=0) cart = cart.filter(x=>x.key!==key);
+  tables[activeTableId].cart = cart;
   renderCartBar();
 }
 
