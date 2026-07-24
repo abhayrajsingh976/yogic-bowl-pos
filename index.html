@@ -867,6 +867,9 @@ lastOrderId = docRef.id;
 
     lastOrder = {...orderData, id: docRef.id, timestamp: new Date()};
     cart = [];
+    tables[activeTableId].cart = [];
+tables[activeTableId].guests = 1;
+tables[activeTableId].phone = '';
     renderCartBar();
     closeCart();
     document.getElementById('guestCount').value = 1;
@@ -1469,6 +1472,7 @@ function updateLowStockBadge(){
 /* ---------------- Boot ---------------- */
 initMenu();
 initOrders();
+  renderTableTabs();
 initStaff();
 checkExistingLogin();
   initInventory();
