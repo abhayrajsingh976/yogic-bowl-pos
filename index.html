@@ -584,11 +584,83 @@ const SEED_MENU = [
 ];
 
 /* ---------------- State ---------------- */
-let menuItems = [];   // [{id,name,category,price}]
-let cart = [];         // [{id,name,price,qty}]
+let menuItems = [];
 let activeCat = 'All';
-let payMethod = 'Cash';
 let orders = [];
+
+let tables = { t1: { id:'t1', name:'Table 1', cart:[], guests:1, phone:'', payMethod:'Cash' } };
+let activeTableId = 't1';
+let cart = tables[activeTableId].cart;
+let payMethod = tables[activeTableId].payMethod;
+
+function saveActiveTableFields(){
+  const t = tables[activeTableId];
+  if(!t) return;
+  t.guests = document.getElementById('guestCount').value;
+  t.phone = document.getElementById('guestPhone').value;
+  t.payMethod = payMethod;
+}
+
+function switchTable(id){
+  saveActiveTableFields();
+  activeTableId = id;
+  const t = tables[id];
+  cart = t.cart;
+  document.getElementById('guestCount').value = t.guests || 1;
+  document.getElementById('guestPhone').value = t.phone || '';
+  payMethod = t.payMethod || 'Cash';
+  document.querySelectorAll('#payMethods button').forEach(b=>{
+    b.classList.toggle('sel', b.dataset.method===payMethod);
+  });
+  renderTableTabs();
+  renderCartBar();
+}
+
+function addTable(){
+  saveActiveTableFields();
+  const n = Object.keys(tables).length + 1;
+  const name = prompt('Name for new table:', 'Table ' + n);
+  if(!name) return;
+  const id = 'tb' + Date.now();
+  tables[id] = { id, name: name.trim(), cart:[], guests:1, phone:'', payMethod:'Cash' };
+  switchTable(id);
+}
+
+function renameTable(id){
+  const t = tables[id];
+  if(!t) return;
+  const name = prompt('Rename table:', t.name);
+  if(!name) return;
+  t.name = name.trim();
+  renderTableTabs();
+}
+
+function closeTable(id){
+  if(Object.keys(tables).length <= 1){ showToast('At least one table must stay open'); return; }
+  const t = tables[id];
+  if(t && t.cart.length && !confirm('This table still has items. Close anyway?')) return;
+  delete tables[id];
+  if(activeTableId === id){
+    switchTable(Object.keys(tables)[0]);
+  } else {
+    renderTableTabs();
+  }
+}
+
+function renderTableTabs(){
+  const wrap = document.getElementById('tableTabs');
+  if(!wrap) return;
+  wrap.innerHTML = Object.values(tables).map(t=>{
+    const count = t.cart.reduce((s,c)=>s+c.qty,0);
+    const total = t.cart.reduce((s,c)=>s+lineTotal(c),0);
+    const active = t.id === activeTableId;
+    return `<div style="flex:0 0 auto;display:flex;align-items:center;gap:4px;background:${active?'var(--olive-dark)':'#fff'};color:${active?'#fff':'var(--ink)'};border:1px solid var(--line);border-radius:20px;padding:6px 10px;font-size:12px;white-space:nowrap;">
+      <span onclick="switchTable('${t.id}')" style="cursor:pointer;font-weight:600;">${t.name}${count?' · '+count+' · ₹'+total:''}</span>
+      <span onclick="renameTable('${t.id}')" style="cursor:pointer;opacity:.7;">✎</span>
+      <span onclick="closeTable('${t.id}')" style="cursor:pointer;opacity:.7;">✕</span>
+    </div>`;
+  }).join('') + `<button onclick="addTable()" style="flex:0 0 auto;border:1px dashed var(--olive);background:none;color:var(--olive-dark);border-radius:20px;padding:6px 12px;font-size:12px;">+ Table</button>`;
+}
 
 /* ---------------- Init & Seed ---------------- */
 async function initMenu(){
