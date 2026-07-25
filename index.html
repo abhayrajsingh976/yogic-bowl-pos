@@ -892,6 +892,12 @@ async function checkout(){
   let phone = document.getElementById('guestPhone').value.replace(/[^0-9]/g,'');
   if(phone.length === 10) phone = '91' + phone;
   if(phone.length < 11) phone = '';
+  let creditCustomer = null;
+if(payMethod === 'Credit'){
+  const name = prompt('Customer name for this tab:');
+  if(!name) return;
+  creditCustomer = name.trim();
+}
   const btn = document.getElementById('checkoutBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
   try{
