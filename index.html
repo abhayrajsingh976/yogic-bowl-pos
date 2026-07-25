@@ -258,6 +258,7 @@
   <button data-view="history">Sales</button>
   <button data-view="inventory">Inventory <span id="lowStockBadge" style="display:none;background:#e74c3c;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px;margin-left:4px;">0</span></button>
   <button data-view="expenses">Expenses</button>
+  <button data-view="credit">Credit</button>
 </nav>
 
 <main>
@@ -402,6 +403,7 @@
         <button class="sel" data-method="Cash" onclick="selectPay('Cash')">Cash</button>
         <button data-method="UPI" onclick="selectPay('UPI')">UPI</button>
         <button data-method="Card" onclick="selectPay('Card')">Card</button>
+        <button data-method="Credit" onclick="selectPay('Credit')">Credit</button>
       </div>
       <button class="checkout-btn" id="checkoutBtn" onclick="checkout()">Complete Order</button>
     </div>
