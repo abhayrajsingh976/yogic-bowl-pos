@@ -1357,12 +1357,33 @@ function renderExpensesList(){
     return y+'-'+m+'-'+d;
   }
 
+  async function editExpense(id){
+  const e = expensesList.find(x=>x.id===id);
+  if(!e) return;
+  const newAmount = prompt('Amount (₹):', e.amount);
+  if(newAmount === null) return;
+  const amount = parseFloat(newAmount);
+  if(isNaN(amount) || amount <= 0){ showToast('Invalid amount'); return; }
+  const newCategory = prompt('Category (Rent/Supplies/Staff/Utilities/Other):', e.category);
+  if(newCategory === null) return;
+  const newNote = prompt('Note:', e.note || '');
+  if(newNote === null) return;
+  try{
+    await db.collection('expenses').doc(id).update({
+      amount, category: newCategory.trim(), note: newNote.trim() || null
+    });
+    showToast('Expense updated');
+  }catch(err){
+    console.error(err);
+    showToast('Failed to update expense');
+  }
+  }
   function expenseCard(e){
     const time = e.timestamp && e.timestamp.toDate ? e.timestamp.toDate().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '…';
     return `<div class="order-card">
       <div class="top"><span>${time}</span><span class="tag">${e.category}</span></div>
       <div class="items">${e.note || 'No note'}</div>
-      <div class="bottom"><button onclick="deleteExpense('${e.id}')" style="background:none;border:none;color:#b25454;font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button><span class="total">₹${e.amount}</span></div>
+      <div class="bottom"><button onclick="editExpense('${e.id}')" style="background:none;border:none;color:var(--olive-dark);font-size:12px;cursor:pointer;padding:0;margin-right:14px;">✎ Edit</button><button onclick="deleteExpense('${e.id}')" style="background:none;border:none;color:#b25454;font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button><span class="total">₹${e.amount}</span></div>
     </div>`;
   }
 
