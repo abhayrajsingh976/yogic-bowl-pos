@@ -901,6 +901,7 @@ async function checkout(){
       guests,
       phone: phone || null,
       paymentMethod: payMethod,
+      creditCustomer,
       status: 'pending',
       staff: currentStaff || 'Unknown',
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
