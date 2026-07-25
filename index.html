@@ -1132,7 +1132,7 @@ let startDate = new Date();
     return `<div class="order-card">
       <div class="top"><span>${time}</span><span class="tag">${o.paymentMethod||'—'}${o.staff?' · '+o.staff:''}</span></div>
       <div class="items">${itemsStr}</div>
-      <div class="bottom"><button onclick="deleteOrder('${o.id}')" style="background:none;border:none;color:#b25454;font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button><span class="total">₹${o.total}</span></div>
+      <div class="bottom"><button onclick="editOrder('${o.id}')" style="background:none;border:none;color:var(--olive-dark);font-size:12px;cursor:pointer;padding:0;margin-right:14px;">✎ Edit</button><button onclick="deleteOrder('${o.id}')" style="background:none;border:none;color:#b25454;font-size:12px;cursor:pointer;padding:0;">🗑 Delete</button><span class="total">₹${o.total}</span></div>
     </div>`;
   }).join('');
 
@@ -1147,7 +1147,33 @@ let startDate = new Date();
     showToast('Failed to delete order');
   }
 }
-
+async function editOrder(orderId){
+  const o = orders.find(x=>x.id===orderId);
+  if(!o) return;
+  const newTotal = prompt('Total amount (₹):', o.total);
+  if(newTotal === null) return;
+  const total = parseFloat(newTotal);
+  if(isNaN(total) || total < 0){ showToast('Invalid amount'); return; }
+  const newMethod = prompt('Payment method (Cash / UPI / Card):', o.paymentMethod || 'Cash');
+  if(newMethod === null) return;
+  const currentDate = o.timestamp && o.timestamp.toDate ? o.timestamp.toDate() : new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dateStr = currentDate.getFullYear()+'-'+pad(currentDate.getMonth()+1)+'-'+pad(currentDate.getDate())+'T'+pad(currentDate.getHours())+':'+pad(currentDate.getMinutes());
+  const newDate = prompt('Date & time (YYYY-MM-DDTHH:MM):', dateStr);
+  if(newDate === null) return;
+  try{
+    const updateData = { total, paymentMethod: newMethod.trim() || 'Cash' };
+    if(newDate){
+      const d = new Date(newDate);
+      if(!isNaN(d.getTime())) updateData.timestamp = firebase.firestore.Timestamp.fromDate(d);
+    }
+    await db.collection('orders').doc(orderId).update(updateData);
+    showToast('Order updated');
+  }catch(e){
+    console.error(e);
+    showToast('Failed to update order');
+  }
+}
 function renderBestSellers(){
   const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate()-7);
   const counts = {};
