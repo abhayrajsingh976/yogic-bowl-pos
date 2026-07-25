@@ -693,9 +693,53 @@ function initOrders(){
   db.collection('orders').orderBy('timestamp','desc').limit(200).onSnapshot(snap=>{
     orders = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderHistory();
+    renderCreditList();
   });
 }
+function renderCreditList(){
+  const wrap = document.getElementById('creditList');
+  if(!wrap) return;
+  const creditOrders = orders.filter(o=>o.paymentMethod==='Credit' && o.status!=='paid' && o.creditCustomer);
+  const byCustomer = {};
+  creditOrders.forEach(o=>{
+    const key = o.creditCustomer;
+    byCustomer[key] = byCustomer[key] || {name:key, total:0, orders:[]};
+    byCustomer[key].total += (o.total||0);
+    byCustomer[key].orders.push(o);
+  });
+  const customers = Object.values(byCustomer).sort((a,b)=>b.total-a.total);
+  document.getElementById('creditEmpty').style.display = customers.length ? 'none' : 'block';
+  wrap.innerHTML = customers.map(c=>{
+    const orderRows = c.orders.map(o=>{
+      const time = o.timestamp && o.timestamp.toDate ? o.timestamp.toDate().toLocaleDateString('en-IN',{day:'2-digit',month:'short'}) : '…';
+      return `<div style="font-size:12px;color:#666;display:flex;justify-content:space-between;padding:2px 0;"><span>${time}</span><span>₹${o.total}</span></div>`;
+    }).join('');
+    return `<div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-weight:700;font-size:15px;">${c.name}</div>
+        <div style="font-weight:700;font-size:16px;color:var(--bad);">₹${c.total}</div>
+      </div>
+      <div style="margin:6px 0;">${orderRows}</div>
+      <button onclick="settleCredit('${c.name.replace(/'/g,"\\'")}')" style="width:100%;padding:8px;border:none;border-radius:8px;background:var(--olive-dark);color:#fff;font-weight:600;font-size:13px;">Settle Full Tab (₹${c.total})</button>
+    </div>`;
+  }).join('');
+}
 
+async function settleCredit(name){
+  if(!confirm('Mark all of ' + name + ' pending orders as paid?')) return;
+  const toSettle = orders.filter(o=>o.paymentMethod==='Credit' && o.status!=='paid' && o.creditCustomer===name);
+  try{
+    const batch = db.batch();
+    toSettle.forEach(o=>{
+      batch.update(db.collection('orders').doc(o.id), {status:'paid'});
+    });
+    await batch.commit();
+    showToast('Tab settled for ' + name);
+  }catch(e){
+    console.error(e);
+    showToast('Failed to settle tab');
+  }
+}
 /* ---------------- Billing View ---------------- */
 function renderCats(){
   const cats = ['All', ...new Set(menuItems.map(i=>i.category))];
