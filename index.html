@@ -348,6 +348,11 @@
     <button id="rangeTodayBtn" onclick="setSalesRange('today')" style="flex:1;padding:9px;border-radius:20px;border:1px solid var(--line);background:var(--olive);color:#fff;font-size:13px;font-weight:600;">Today</button>
     <button id="rangeMonthBtn" onclick="setSalesRange('month')" style="flex:1;padding:9px;border-radius:20px;border:1px solid var(--line);background:#fff;color:var(--olive-dark);font-size:13px;font-weight:600;">This Month</button>
   </div>
+    <div id="monthNav" style="display:none;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;">
+    <button onclick="changeMonth(-1)" style="padding:6px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;font-size:16px;">◀</button>
+    <span id="monthNavLabel" style="font-weight:600;font-size:14px;"></span>
+    <button id="monthNextBtn" onclick="changeMonth(1)" style="padding:6px 14px;border-radius:14px;border:1px solid var(--line);background:#fff;font-size:16px;">▶</button>
+    </div>
   <div class="stat-cards">
     <div class="stat-card"><div class="label" id="salesLabel">Today's Sales</div><div class="val" id="todayTotal">₹0</div></div>
     <div class="stat-card"><div class="label" id="ordersLabel">Today's Orders</div><div class="val" id="todayCount">0</div></div>
@@ -1104,8 +1109,16 @@ function renderMgmtList(){
 
 /* ---------------- History View ---------------- */
 let salesRange = 'today';
+  let monthOffset = 0;
+  function changeMonth(delta){
+    monthOffset += delta;
+    if(monthOffset < 0) monthOffset = 0;
+    renderHistory();
+  }
   function setSalesRange(range){
   salesRange = range;
+  monthOffset = 0;
+  document.getElementById('monthNav').style.display = range==='month' ? 'flex' : 'none';
   document.getElementById('rangeTodayBtn').style.background = range==='today' ? 'var(--olive)' : '#fff';
   document.getElementById('rangeTodayBtn').style.color = range==='today' ? '#fff' : 'var(--olive-dark)';
   document.getElementById('rangeMonthBtn').style.background = range==='month' ? 'var(--olive)' : '#fff';
