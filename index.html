@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>The Yogic Bowl — POS</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4f5a3b">
+<meta name="theme-color" content="#060a13">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Yogic Bowl POS">
@@ -14,6 +14,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>try{if(localStorage.getItem('ybTheme')==='classic')document.documentElement.classList.add('classic')}catch(e){}</script>
 <style>
   :root{
     --cream:#f6f1e4;
@@ -227,6 +228,64 @@
       font-family:'Courier New',monospace;font-size:12px;padding:10px;
     }
   }
+
+/* ===== FUTURISTIC THEME (toggle with the ✨ button) ===== */
+html:not(.classic){
+  --cream:#060a13; --olive:#14b8a6; --olive-dark:#5eead4; --clay:#22d3ee;
+  --ink:#e6edf7; --line:rgba(148,163,184,.18); --card:rgba(255,255,255,.045);
+  --good:#34d399; --bad:#fb7185;
+}
+html:not(.classic) body{
+  background:radial-gradient(900px 500px at 10% -10%,rgba(20,184,166,.22),transparent 60%),
+             radial-gradient(800px 500px at 100% 0%,rgba(139,92,246,.20),transparent 60%),
+             #060a13 fixed;
+  color:var(--ink);font-family:'Inter','Segoe UI',system-ui,sans-serif;
+}
+html:not(.classic) header{
+  background:rgba(8,14,26,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.35);
+}
+html:not(.classic) header h1{
+  background:linear-gradient(90deg,#5eead4,#22d3ee,#a78bfa);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;font-weight:700;letter-spacing:1px;
+}
+html:not(.classic) #currentStaffTag{background:rgba(255,255,255,.08);padding:5px 10px;border-radius:20px;font-size:12px;}
+html:not(.classic) .dot{background:#34d399;box-shadow:0 0 10px #34d399;}
+html:not(.classic) .dot.off{background:#fb7185;box-shadow:0 0 10px #fb7185;}
+html:not(.classic) nav{background:rgba(8,14,26,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+html:not(.classic) nav button{color:#cbd5e1;transition:.2s;}
+html:not(.classic) nav button.active{color:#5eead4;border-bottom-color:#22d3ee;text-shadow:0 0 12px rgba(34,211,238,.7);}
+html:not(.classic) .cats button{background:rgba(255,255,255,.06);color:#cbd5e1;border-color:var(--line);backdrop-filter:blur(8px);transition:.2s;}
+html:not(.classic) .cats button.active{background:linear-gradient(135deg,#14b8a6,#06b6d4);color:#031014;border-color:transparent;box-shadow:0 0 18px rgba(34,211,238,.45);}
+html:not(.classic) .item-card{
+  background:linear-gradient(160deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  border:1px solid var(--line);border-radius:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:transform .15s,box-shadow .2s,border-color .2s;
+}
+html:not(.classic) .item-card:hover{border-color:rgba(34,211,238,.6);box-shadow:0 0 22px rgba(34,211,238,.25);transform:translateY(-2px);}
+html:not(.classic) .item-card:active{background:rgba(34,211,238,.15);transform:scale(.96);}
+html:not(.classic) .item-card .price{color:#22d3ee;text-shadow:0 0 10px rgba(34,211,238,.5);}
+html:not(.classic) .cart-bar{background:linear-gradient(90deg,#0d9488,#0891b2,#7c3aed);box-shadow:0 -6px 30px rgba(34,211,238,.35);border-top:1px solid rgba(255,255,255,.2);}
+html:not(.classic) .overlay{background:rgba(2,6,15,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+html:not(.classic) .sheet{background:#0a1120;color:var(--ink);border:1px solid var(--line);box-shadow:0 -10px 50px rgba(0,0,0,.6);}
+html:not(.classic) .sheet-head,html:not(.classic) .sheet-foot{border-color:var(--line);}
+html:not(.classic) .sheet-head .close{color:var(--ink);}
+html:not(.classic) .mgmt-add,html:not(.classic) .mgmt-row{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:14px;color:var(--ink);}
+html:not(.classic) .addon-chip{background:rgba(34,211,238,.15);color:#67e8f9;border-color:rgba(34,211,238,.4);}
+html:not(.classic) input,html:not(.classic) select,html:not(.classic) textarea{
+  background:rgba(255,255,255,.07);color:var(--ink);border:1px solid var(--line);border-radius:10px;
+}
+html:not(.classic) input:focus,html:not(.classic) select:focus{outline:none;border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.22);}
+html:not(.classic) input::placeholder{color:#7c8aa0;}
+html:not(.classic) .mgmt-add button,html:not(.classic) .sheet-foot button,html:not(.classic) .cart-bar button{
+  background:linear-gradient(135deg,#14b8a6,#06b6d4);color:#031014;border:none;border-radius:12px;font-weight:700;
+}
+html:not(.classic) .cart-bar button{background:#fff;color:#0f172a;}
+html:not(.classic) button:disabled{opacity:.4;}
+html:not(.classic) .empty{color:#8b9ab0;}
+html:not(.classic) ::-webkit-scrollbar{height:6px;width:6px;}
+html:not(.classic) ::-webkit-scrollbar-thumb{background:rgba(148,163,184,.35);border-radius:10px;}
+#themeBtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:20px;padding:5px 10px;cursor:pointer;font-size:14px;}
 </style>
 </head>
 <body>
@@ -246,6 +305,7 @@
 <header>
   <h1><img src="logo.png" style="height:40px;vertical-align:middle;margin-right:8px;"> The Yogic Bowl – POS</h1>
   <div style="display:flex;align-items:center;gap:10px;">
+    <button id="themeBtn" title="Switch theme" onclick="var c=document.documentElement.classList.toggle('classic');try{localStorage.setItem('ybTheme',c?'classic':'neo')}catch(e){}">✨</button>
     <span id="currentStaffTag" onclick="logoutStaff()">👤 —</span>
     <div class="status"><span class="dot off" id="statusDot"></span><span id="statusText">Connecting…</span></div>
   </div>
@@ -266,6 +326,7 @@
   <section class="view active" id="view-billing">
     <div class="search-wrap">
       <input type="text" id="searchBox" placeholder="🔍 Search menu items…" oninput="onSearch(this.value)">
+      <button onclick="addCustomItem()" style="margin-top:6px;width:100%;padding:10px;border:none;border-radius:8px;background:#5a6b3a;color:#fff;font-weight:600;">+ Custom Order (type name &amp; price)</button>
     </div>
     <div id="tableTabs" style="display:flex;gap:6px;overflow-x:auto;padding:6px 0;"></div>
     <div class="cats" id="cats"></div>
@@ -324,6 +385,7 @@
         <button onclick="addItem()">+ Add Item</button>
       </div>
     </div>
+    <button onclick="replaceMenu()" style="width:100%;padding:10px;margin-bottom:10px;border:none;border-radius:8px;background:#b3402a;color:#fff;font-weight:600;">⚠️ Replace whole menu with NEW menu (one time)</button>
     <div class="mgmt-list" id="mgmtList"></div>
   </section>
 
@@ -466,134 +528,149 @@ function setStatus(ok, text){
 
 /* ---------------- Seed Menu Data ---------------- */
 const SEED_MENU = [
-  // Smoothie Drinks
-  ["Pineapple Cucumber Spinach Smoothie","Smoothie Drinks",250],
-  ["Banana Papaya Strawberry Smoothie","Smoothie Drinks",280],
-  ["Banana Split Smoothie","Smoothie Drinks",250],
-  // Smoothie Bowls
-  ["Tropical Smoothie Bowl","Smoothie Bowls",300],
-  ["Chocolate Peanut Butter Banana Bowl","Smoothie Bowls",280],
-  ["Avocado and Spinach Smoothie Bowl","Smoothie Bowls",350],
-  ["Coconut Acai Smoothie Bowl","Smoothie Bowls",300],
-  ["Carrot Cake Smoothie Bowl","Smoothie Bowls",250],
-  ["Strawberries Cream Smoothie Bowl","Smoothie Bowls",300],
-  // Juices
-  ["Mausambi (Sweet Lime) Juice","Juices",120],
-  ["Pineapple Juice","Juices",150],
-  ["Watermelon Juice","Juices",120],
-  ["Apple Beetroot Carrot Juice","Juices",150],
-  ["Orange Juice","Juices",180],
-  // Shakes
-  ["Strawberry Milkshake","Shakes",220],
-  ["Peanut Butter Brownie Shake","Shakes",220],
-  ["Caramel Biscoff Shake","Shakes",220],
-  ["Boozy S'mores Milkshake","Shakes",200],
-  ["Oreo Cookies Shake","Shakes",200],
-  // Tea
-  ["Indian Masala Tea","Tea",40],
-  ["Honey Lemon Ginger Tea","Tea",80],
-  ["Ginger Mint Tea","Tea",80],
-  ["Yogic Tea","Tea",100],
-  ["Blue Butterfly Pea Tea","Tea",120],
-  // Hot Brews
-  ["Espresso Single Shot","Hot Brews",70],
-  ["Espresso Double Shot","Hot Brews",120],
-  ["Americano","Hot Brews",120],
-  ["Cortado","Hot Brews",130],
-  ["Cappuccino","Hot Brews",130],
-  ["Latte","Hot Brews",130],
-  ["Caramel Macchiato","Hot Brews",130],
-  ["Cafe Mocha","Hot Brews",200],
-  ["Hazelnut Latte","Hot Brews",200],
-  // Toast & Sandwiches
-  ["Toast w/ PB or Nutella & Banana","Toast & Sandwiches",180],
-  ["Avocado Toast with Veggies/Eggs","Toast & Sandwiches",220],
-  ["Tandoori Paneer Sandwich","Toast & Sandwiches",250],
-  ["Corn and Cheese Sandwich","Toast & Sandwiches",250],
-  ["Tahini Crunch","Toast & Sandwiches",280],
-  ["The Green Monk","Toast & Sandwiches",280],
-  // Eggs
-  ["Boiled Eggs (2)","Eggs",50],
-  ["Plain Omelette","Eggs",100],
-  ["Vegetable Omelette","Eggs",120],
-  ["Scrambled Eggs","Eggs",130],
-  ["Souffle Omelette","Eggs",150],
-  ["Shakshuka","Eggs",260],
-  // Salad Bowls
-  ["Greek Vegan Chickpea Millet","Salad Bowls",250],
-  ["Mexican Bean Pepper Salad","Salad Bowls",250],
-  ["Spring Pesto Pasta Salad","Salad Bowls",280],
-  ["Crunchy Broccoli Millet Salad","Salad Bowls",280],
-  ["Tahina Based Salad","Salad Bowls",300],
-  ["Quinoa Salad","Salad Bowls",300],
-  // Buddha Bowls
-  ["Vegan Tofu Himalayan Millet Bowl","Buddha Bowls",300],
-  ["Pad Thai Noodles Bowl","Buddha Bowls",280],
-  ["Middle Eastern Falafel Bowl","Buddha Bowls",260],
-  ["Mediterranean Bowl","Buddha Bowls",300],
-  ["Red Thai Bowl","Buddha Bowls",300],
-  // Chinese Bowls
-  ["Vegetable Chowmein","Chinese Bowls",150],
-  ["Chilli Garlic Noodles","Chinese Bowls",180],
-  ["Thukpa","Chinese Bowls",200],
-  ["Hakka Noodles","Chinese Bowls",200],
-  ["Thai Tofu Peanut Noodles","Chinese Bowls",250],
-  // Indian Bowls
-  ["Pahadi Rajma Bowl","Indian Bowls",300],
-  ["Mandi Bowl","Indian Bowls",300],
-  ["Egg Curry Bowl","Indian Bowls",320],
-  ["Dusk and Dawn Bowl","Indian Bowls",350],
-  ["Coconut Stew","Indian Bowls",380],
-  // Wraps
-  ["Kathi Roll / Egg Roll","Wraps",220],
-  ["Pesto Wrap","Wraps",280],
-  ["Pinwheel Wrap","Wraps",300],
-  ["Falafal Wrap","Wraps",300],
-  // Rice
-  ["Lemon Rice","Rice",130],
-  ["Dal Khichdi","Rice",200],
-  ["Curd Rice","Rice",200],
-  ["Egg Fried Rice","Rice",200],
-  ["Paneer Tikka Pulao","Rice",280],
-  // Desserts
-  ["Rabdi Kulfi","Desserts",250],
-  ["Fudge Sauce Sundae","Desserts",250],
-  ["Pistachio Coconut Kulfi","Desserts",300],
-  ["Date Almond Kulfi","Desserts",300],
-  // Waffles
-  ["Matcha Waffle","Waffles",280],
-  ["Blue Berries Waffle","Waffles",280],
-  ["Oreo Cookie Waffle","Waffles",280],
-  ["Indian Style Rabdi Waffle","Waffles",280],
-  ["Nutella and Banana Waffle","Waffles",250],
-  ["Double Chocolate Waffle","Waffles",280],
-  // Indian Breakfast - Paratha
-  ["Masala Paratha","Paratha",60],
-  ["Aloo-Pyaaz Stuffed Paratha","Paratha",100],
-  ["Paneer Paratha","Paratha",120],
-  ["Poha","Paratha",120],
-  // Dosa
-  ["Plain Ghee Dosa","Dosa",120],
-  ["Podi Dosa","Dosa",120],
-  ["Masala Dosa","Dosa",150],
-  ["Paneer / Tofu Dosa","Dosa",200],
-  ["Mysore Special Dosa","Dosa",220],
-  // Starters
-  ["Beetroot Kabab","Starters",200],
-  ["Makhana Bhel","Starters",220],
-  ["Honey Chilli Potato","Starters",220],
-  ["Crispy Fried American Corn","Starters",250],
-  ["Chilli Mushroom","Starters",250],
-  // Pancake & Crepes
-  ["Nutella Banana Pancake","Pancake & Crepes",200],
-  ["Oats & Nuts Pancakes","Pancake & Crepes",250],
-  ["Blueberry Pancake","Pancake & Crepes",250],
-  ["Fruit Island Crepe","Pancake & Crepes",350],
-  ["Green Velvet Crepe","Pancake & Crepes",350],
-  // Fruit Bowls
-  ["Classic Fresh Fruit Bowl","Fruit Bowls",200],
-  ["Yogurt Fruit Bowl","Fruit Bowls",250],
-  ["Protein Fruit Bowl","Fruit Bowls",300],
+  ["Indian Masala Tea", "Tea", 51],
+  ["Honey Lemon Ginger Tea", "Tea", 78],
+  ["Ginger Mint Tea", "Tea", 78],
+  ["Yogic Tea", "Tea", 96],
+  ["Blue Butterfly Pea Tea", "Tea", 114],
+  ["Watermelon Juice", "Juices", 123],
+  ["Pineapple Juice", "Juices", 150],
+  ["Apple Beetroot Juice", "Juices", 150],
+  ["Sweet Lime Juice", "Juices", 177],
+  ["Orange Juice", "Juices", 204],
+  ["Pomegranate Juice", "Juices", 240],
+  ["Oreo Cookies Shake", "Shakes", 204],
+  ["Strawberry Milkshake", "Shakes", 222],
+  ["Peanut Butter Brownie Shake", "Shakes", 258],
+  ["Caramel Biscoff Shake", "Shakes", 258],
+  ["Espresso Single Shot", "Hot Brews", 69],
+  ["Espresso Double Shot", "Hot Brews", 123],
+  ["Cortado", "Hot Brews", 159],
+  ["Cappuccino", "Hot Brews", 159],
+  ["Latte", "Hot Brews", 159],
+  ["Caramel Macchiato", "Hot Brews", 195],
+  ["Cafe Mocha", "Hot Brews", 195],
+  ["Hazelnut Latte", "Hot Brews", 195],
+  ["Lassi", "Cold Beverages", 150],
+  ["Sweet Lime Soda", "Cold Beverages", 100],
+  ["The Butterfly Iced Coffee", "Cold Beverages", 240],
+  ["Iced Spanish Latte", "Cold Beverages", 276],
+  ["Iced Coconut Latte", "Cold Beverages", 294],
+  ["Iced Pistachio Latte", "Cold Beverages", 303],
+  ["Iced Chai Latte", "Cold Beverages", 240],
+  ["Swiss Coffee", "Cold Beverages", 276],
+  ["Pineapple Cucumber Spinach Smoothie", "Smoothie Drinks", 240],
+  ["Banana Papaya Strawberry", "Smoothie Drinks", 258],
+  ["Banana Split Smoothie", "Smoothie Drinks", 258],
+  ["Matcha Green Protein Smoothie", "Smoothie Drinks", 258],
+  ["Pink Panther Smoothie", "Smoothie Drinks", 258],
+  ["Carrot Cake Smoothie Bowl", "Smoothie Bowls", 285],
+  ["Strawberry Smoothie Bowl", "Smoothie Bowls", 330],
+  ["Tropical Smoothie Bowl", "Smoothie Bowls", 330],
+  ["Chocolate Peanut Butter Smoothie Bowl", "Smoothie Bowls", 330],
+  ["Avocado and Spinach Smoothie Bowl", "Smoothie Bowls", 375],
+  ["Blueberry Smoothie Bowl", "Smoothie Bowls", 555],
+  ["Protein Smoothie Bowl", "Smoothie Bowls", 600],
+  ["Boiled Eggs (2)", "Eggs", 51],
+  ["Plain Omelette", "Eggs", 105],
+  ["Vegetable Omelette", "Eggs", 132],
+  ["Scrambled Eggs", "Eggs", 132],
+  ["Shakshuka", "Eggs", 285],
+  ["Masala Paratha", "Paratha", 60],
+  ["Aloo-Pyaaz Stuffed Paratha", "Paratha", 105],
+  ["Paneer Paratha", "Paratha", 159],
+  ["Poha", "Paratha", 159],
+  ["Toast with Peanut Butter/Nutella and Banana", "Toast & Sandwiches", 204],
+  ["Avocado Toast with Veggies/Eggs", "Toast & Sandwiches", 276],
+  ["Tandoor Paneer Sandwich", "Toast & Sandwiches", 249],
+  ["Corn and Cheese Sandwich", "Toast & Sandwiches", 249],
+  ["Tahini Crunch", "Toast & Sandwiches", 276],
+  ["The Green Monk", "Toast & Sandwiches", 276],
+  ["Blueberries Waffle", "Waffles & Crepes", 276],
+  ["Matcha Waffle", "Waffles & Crepes", 276],
+  ["Oreo Waffle", "Waffles & Crepes", 276],
+  ["Indian Rabdi Waffle", "Waffles & Crepes", 276],
+  ["Nutella and Banana Waffle", "Waffles & Crepes", 276],
+  ["Double Chocolate Waffle", "Waffles & Crepes", 276],
+  ["Nutella Banana Crepe", "Waffles & Crepes", 249],
+  ["Crepe Suzette", "Waffles & Crepes", 285],
+  ["Fruit Island Crepe", "Waffles & Crepes", 294],
+  ["Matcha Crepe", "Waffles & Crepes", 348],
+  ["Nutella Banana Pancake", "Pancakes", 258],
+  ["Blueberry Pancake", "Pancakes", 240],
+  ["Ragi Pancake", "Pancakes", 276],
+  ["Oats & Nuts Pancake", "Pancakes", 276],
+  ["Plain Ghee Dosa", "South Indian", 123],
+  ["Podi Dosa", "South Indian", 123],
+  ["Masala Dosa", "South Indian", 159],
+  ["Paneer/Tofu Dosa", "South Indian", 204],
+  ["Mysore Special Dosa", "South Indian", 213],
+  ["Idli", "South Indian", 213],
+  ["Plain Ghee Uttapam", "South Indian", 213],
+  ["Veg Uttapam", "South Indian", 231],
+  ["Karam Uttapam", "South Indian", 231],
+  ["Beetroot Kabab", "Starters", 240],
+  ["Makhana Bhel", "Starters", 240],
+  ["Honey Chilli Potato", "Starters", 240],
+  ["Paneer Chilli", "Starters", 258],
+  ["Chilli Mushroom", "Starters", 276],
+  ["Raw Salad", "Salad Bowls", 204],
+  ["Creamy Ranch Protein Salad", "Salad Bowls", 276],
+  ["Italian Herb Paneer Salad", "Salad Bowls", 276],
+  ["Avocado Lime Salad", "Salad Bowls", 285],
+  ["Honey Mustard Tofu / Chickpea Salad", "Salad Bowls", 285],
+  ["Crunchy Broccoli Millet Salad", "Salad Bowls", 285],
+  ["Quinoa Salad", "Salad Bowls", 285],
+  ["Tahina Based Salad", "Salad Bowls", 294],
+  ["Vegan Tofu Himalayan Millet Bowl", "Buddha Bowls", 303],
+  ["Pad Thai Noodles Bowl", "Buddha Bowls", 303],
+  ["Middle Eastern Falafel Bowl", "Buddha Bowls", 303],
+  ["Mediterranean Bowl", "Buddha Bowls", 303],
+  ["Red Thai Bowl", "Buddha Bowls", 303],
+  ["Stir Fried Vegetable Bowl", "Chef's Special", 276],
+  ["Crispy Chickpea & Roasted Vegetable with Tahini", "Chef's Special", 294],
+  ["Grilled Paneer Greek Salad & Millet Bowl", "Chef's Special", 312],
+  ["Tofu / Paneer Rice & Broccoli Bowl", "Chef's Special", 411],
+  ["Vegetable Chowmein", "Chinese Bowls", 150],
+  ["Chilli Garlic Noodles", "Chinese Bowls", 186],
+  ["Thukpa", "Chinese Bowls", 240],
+  ["Hakka Noodles", "Chinese Bowls", 204],
+  ["Thai Tofu Peanut Noodles", "Chinese Bowls", 249],
+  ["Dal Fry", "Indian Curries", 177],
+  ["Mix Vegetables", "Indian Curries", 240],
+  ["Palak Paneer", "Indian Curries", 294],
+  ["Egg Masala", "Indian Curries", 258],
+  ["Chana Masala", "Indian Curries", 258],
+  ["Paneer Butter Masala", "Indian Curries", 294],
+  ["Green Velvet Kofta", "Indian Curries", 330],
+  ["Paneer Tawa Masala", "Indian Curries", 330],
+  ["Steamed Rice", "Rice", 105],
+  ["Jeera Rice", "Rice", 150],
+  ["Lemon Rice", "Rice", 204],
+  ["Curd Rice", "Rice", 204],
+  ["Veg Biryani", "Rice", 240],
+  ["Egg Biryani", "Rice", 276],
+  ["Aglio Olio Pasta", "Pasta", 276],
+  ["White Sauce Pasta with Veggies", "Pasta", 294],
+  ["Sicilian Spaghetti Pasta", "Pasta", 321],
+  ["Pesto Pasta", "Pasta", 330],
+  ["Regular Chapati", "Bread", 15],
+  ["Regular Ghee Chapati", "Bread", 24],
+  ["Gluten Free Chapati", "Bread", 33],
+  ["Classic Fruit Bowl", "Fruit Bowls", 240],
+  ["Yogurt Fruit Bowl", "Fruit Bowls", 276],
+  ["Protein Fruit Bowl", "Fruit Bowls", 294],
+  ["Mint and Zest", "Mocktails", 186],
+  ["Pink Guava Rush", "Mocktails", 186],
+  ["Masala Pomegranate", "Mocktails", 213],
+  ["Cranberry Green Appletini", "Mocktails", 231],
+  ["Lychee Lavender", "Mocktails", 231],
+  ["Coco Drift", "Mocktails", 231],
+  ["Gulab Jamun", "Desserts", 150],
+  ["Oreo Mug Cake", "Desserts", 150],
+  ["Gajar Halwa/Carrot Pudding", "Desserts", 150],
+  ["Moong Dal Halwa", "Desserts", 186],
+  ["Choco Banana Crunch", "Desserts", 186]
 ];
 
 /* ---------------- State ---------------- */
@@ -823,7 +900,7 @@ function renderCartSheet(){
           <div class="n">${c.name}</div>
           <div class="p" onclick="editPrice('${c.key}')" style="cursor:pointer;text-decoration:underline dotted;">₹${c.price} each${c.addons&&c.addons.length? ' + add-ons':''} ✏️</div>
           <div class="addon-list">${addonsHtml}</div>
-          <button class="add-addon-btn" onclick="promptAddon('${c.key}')">+ Add-on</button>
+          <button class="add-addon-btn" onclick="quickAddon('${c.key}',25)">+₹25</button> <button class="add-addon-btn" onclick="quickAddon('${c.key}',50)">+₹50</button> <button class="add-addon-btn" onclick="promptAddon('${c.key}')">+ Add-on</button>
         </div>
         <div class="qty">
           <button onclick="changeQty('${c.key}',-1)">−</button>
@@ -1086,6 +1163,53 @@ async function addItem(){
   showToast('Item added ✓');
 }
 
+
+/* ---- NEW: custom order, quick add-ons, edit item, replace menu ---- */
+function addCustomItem(){
+  const name = prompt('Custom item name:');
+  if(!name || !name.trim()) return;
+  const price = parseFloat(prompt('Price ₹:'));
+  if(isNaN(price) || price<0) return;
+  cart.push({key:'k'+Date.now()+Math.random().toString(36).slice(2), id:'custom', name:name.trim(), price, qty:1, addons:[]});
+  tables[activeTableId].cart = cart;
+  renderCartBar();
+  showToast('Custom item added ✓');
+}
+function quickAddon(key, price){
+  const c = cart.find(c=>c.key===key);
+  if(!c) return;
+  c.addons = c.addons || [];
+  c.addons.push({name:'Add-on', price});
+  renderCartBar();
+}
+async function editItem(id){
+  const i = menuItems.find(x=>x.id===id);
+  if(!i) return;
+  const name = prompt('Item name:', i.name); if(name===null) return;
+  const category = prompt('Category:', i.category); if(category===null) return;
+  const price = parseFloat(prompt('Price ₹:', i.price));
+  if(!name.trim() || !category.trim() || isNaN(price) || price<0){ showToast('Invalid values'); return; }
+  await db.collection('menuItems').doc(id).update({name:name.trim(), category:category.trim(), price});
+  showToast('Item updated ✓');
+}
+async function replaceMenu(){
+  if(!confirm('This DELETES the whole current menu and loads the new one. Past sales are NOT affected. Continue?')) return;
+  showToast('Updating menu… wait');
+  const old = await db.collection('menuItems').get();
+  let docs = old.docs;
+  for(let k=0;k<docs.length;k+=400){
+    const b = db.batch();
+    docs.slice(k,k+400).forEach(d=>b.delete(d.ref));
+    await b.commit();
+  }
+  for(let k=0;k<SEED_MENU.length;k+=400){
+    const b = db.batch();
+    SEED_MENU.slice(k,k+400).forEach(([name,category,price])=>b.set(db.collection('menuItems').doc(),{name,category,price}));
+    await b.commit();
+  }
+  showToast('New menu loaded ✓ ('+SEED_MENU.length+' items)');
+}
+
 async function deleteItem(id){
   if(!confirm('Remove this item from the menu?')) return;
   await db.collection('menuItems').doc(id).delete();
@@ -1104,7 +1228,7 @@ function renderMgmtList(){
       ${groups[cat].map(i=>`
         <div class="mgmt-row">
           <div><span class="n">${i.name}</span><span class="p">₹${i.price}</span></div>
-          <button class="del" onclick="deleteItem('${i.id}')">✕</button>
+          <button class="del" style="color:#333" onclick="editItem('${i.id}')">✏️</button> <button class="del" onclick="deleteItem('${i.id}')">✕</button>
         </div>
       `).join('')}
     </div>
