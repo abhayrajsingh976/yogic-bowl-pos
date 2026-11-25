@@ -815,12 +815,34 @@ async function initMenu(){
   }
 }
 
+let dataFrom = (function(){ const d=new Date(); return new Date(d.getFullYear(), d.getMonth()-1, 1); })();
+let ordersRange = [], ordersCredit = [], unsubOrders = null, unsubCredit = null, unsubExp = null;
+function mergeOrders(){
+  const map = new Map();
+  ordersRange.concat(ordersCredit).forEach(o=>map.set(o.id,o));
+  const ms = o => (o.timestamp && o.timestamp.toMillis) ? o.timestamp.toMillis() : Number.MAX_SAFE_INTEGER;
+  orders = Array.from(map.values()).sort((a,b)=>ms(b)-ms(a));
+  renderHistory();
+  renderCreditList();
+}
 function initOrders(){
-  db.collection('orders').orderBy('timestamp','desc').limit(200).onSnapshot(snap=>{
-    orders = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    renderHistory();
-    renderCreditList();
+  if(unsubOrders) unsubOrders();
+  unsubOrders = db.collection('orders').where('timestamp','>=',dataFrom).orderBy('timestamp','desc').onSnapshot(snap=>{
+    ordersRange = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    mergeOrders();
   });
+  if(!unsubCredit){
+    unsubCredit = db.collection('orders').where('paymentMethod','==','Credit').onSnapshot(snap=>{
+      ordersCredit = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      mergeOrders();
+    });
+  }
+}
+function ensureDataFrom(d){
+  if(d >= dataFrom) return;
+  dataFrom = d;
+  initOrders();
+  initExpenses();
 }
 function renderCreditList(){
   const wrap = document.getElementById('creditList');
@@ -1373,6 +1395,7 @@ let startDate = new Date();
       document.getElementById('monthNextBtn').style.pointerEvents = monthOffset===0 ? 'none' : 'auto';
     }
 
+    ensureDataFrom(startDate);
     const rangeOrders = orders.filter(o=>{
       if(!o.timestamp || !o.timestamp.toDate) return false;
       const t = o.timestamp.toDate();
@@ -1391,7 +1414,7 @@ let startDate = new Date();
     const rangeExpTotal = rangeExpenses.reduce((s,e)=>s+(e.amount||0),0);
     const rangeProfit = rangeTotal - rangeExpTotal;
 
-    const labelPrefix = salesRange === 'today' ? "Today's" : "This Month's";
+    const labelPrefix = salesRange === 'today' ? "Today's" : (monthOffset===0 ? "This Month's" : startDate.toLocaleDateString('en-IN',{month:'short',year:'numeric'})+"'s");
     document.getElementById('salesLabel').textContent = labelPrefix + ' Sales';
     document.getElementById('ordersLabel').textContent = labelPrefix + ' Orders';
     document.getElementById('expLabel').textContent = labelPrefix + ' Expenses';
@@ -1633,7 +1656,8 @@ function showToast(msg){
 let expensesList = [];
 
 function initExpenses(){
-  db.collection('expenses').orderBy('timestamp','desc').limit(200).onSnapshot(snap=>{
+  if(unsubExp) unsubExp();
+  unsubExp = db.collection('expenses').where('timestamp','>=',dataFrom).orderBy('timestamp','desc').onSnapshot(snap=>{
     expensesList = snap.docs.map(d=>({id:d.id, ...d.data()}));
     renderExpensesList();
     if(typeof renderHistory === 'function') renderHistory();
